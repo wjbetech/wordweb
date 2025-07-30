@@ -14,7 +14,8 @@
     "daisyui": "^5.0.48",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-force-graph": "^1.48.0"
+    "react-force-graph": "^1.48.0",
+    "reactflow": "^11.11.4"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",
