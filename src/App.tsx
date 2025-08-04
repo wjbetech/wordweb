@@ -1,12 +1,5 @@
 import React, { useState, useCallback, useMemo } from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  ReactFlowProvider,
-  useReactFlow,
-  BackgroundVariant,
-  MarkerType
-} from "reactflow";
+import ReactFlow, { Background, Controls, ReactFlowProvider, useReactFlow, BackgroundVariant } from "reactflow";
 import ColoredNode from "./components/ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import "reactflow/dist/style.css";
@@ -151,10 +144,10 @@ function WordWebFlow() {
           source: centerId,
           target: n.id,
           style: {
-            stroke: "#475569",
-            strokeWidth: 4
+            stroke: "#94a3b8",
+            strokeWidth: 1.5
           },
-          type: "straight",
+          type: "smoothstep",
           animated: false
         }));
         setEdges(initialEdges);
@@ -201,10 +194,10 @@ function WordWebFlow() {
         source: node.id,
         target: n.id,
         style: {
-          stroke: "#475569",
-          strokeWidth: 4
+          stroke: "#94a3b8",
+          strokeWidth: 1.5
         },
-        type: "straight",
+        type: "smoothstep",
         animated: false
       }));
       setNodes((prev) => [...prev, ...newNodes]);
@@ -229,8 +222,8 @@ function WordWebFlow() {
         className="w-full h-full"
         onNodeClick={onNodeClick}
         defaultEdgeOptions={{
-          style: { stroke: "#475569", strokeWidth: 4 },
-          type: "straight",
+          style: { stroke: "#94a3b8", strokeWidth: 1.5 },
+          type: "smoothstep",
           animated: false
         }}
         edgesFocusable={true}
