@@ -1,5 +1,12 @@
 import React, { useState, useCallback, useMemo } from "react";
-import ReactFlow, { Background, Controls, ReactFlowProvider, useReactFlow, BackgroundVariant } from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  ReactFlowProvider,
+  useReactFlow,
+  BackgroundVariant,
+  MarkerType
+} from "reactflow";
 import ColoredNode from "./components/ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import "reactflow/dist/style.css";
@@ -33,14 +40,14 @@ function WordWebFlow() {
   // Color palette for each depth
   const colors = useMemo(
     () => [
-      { bg: "#222", text: "#fff" },
-      { bg: "#1e3a8a", text: "#fff" },
-      { bg: "#166534", text: "#fff" },
-      { bg: "#7c2d12", text: "#fff" },
-      { bg: "#a21caf", text: "#fff" },
-      { bg: "#b91c1c", text: "#fff" },
-      { bg: "#0e7490", text: "#fff" },
-      { bg: "#f59e42", text: "#fff" }
+      { bg: "#4a5568", text: "#fff" }, // lighter gray
+      { bg: "#3b82f6", text: "#fff" }, // bright blue
+      { bg: "#10b981", text: "#fff" }, // emerald
+      { bg: "#f97316", text: "#fff" }, // orange
+      { bg: "#8b5cf6", text: "#fff" }, // violet
+      { bg: "#ef4444", text: "#fff" }, // red
+      { bg: "#06b6d4", text: "#fff" }, // cyan
+      { bg: "#f59e0b", text: "#fff" } // amber
     ],
     []
   );
@@ -110,7 +117,7 @@ function WordWebFlow() {
         id: centerId,
         data: { label: centerWord, depth: 0, color: colors[0] },
         position: { x: center.x, y: center.y },
-        type: "default"
+        type: "colored"
       };
 
       setNodes([centerNode]);
@@ -139,16 +146,18 @@ function WordWebFlow() {
           return node;
         });
         setNodes([centerNode, ...relatedNodes]);
-        setEdges(
-          relatedNodes.map((n) => ({
-            id: `e-${centerId}-${n.id}`,
-            source: centerId,
-            target: n.id,
-            style: { stroke: "#000000", strokeWidth: 3 },
-            animated: true,
-            type: "smoothstep"
-          }))
-        );
+        const initialEdges = relatedNodes.map((n) => ({
+          id: `e-${centerId}-${n.id}`,
+          source: centerId,
+          target: n.id,
+          style: {
+            stroke: "#475569",
+            strokeWidth: 4
+          },
+          type: "straight",
+          animated: false
+        }));
+        setEdges(initialEdges);
         // Refocus on new nodes
         reactFlow.fitView({ nodes: relatedNodes, duration: 500 });
       }, 500);
@@ -191,9 +200,12 @@ function WordWebFlow() {
         id: `e-${node.id}-${n.id}`,
         source: node.id,
         target: n.id,
-        style: { stroke: "#000000", strokeWidth: 3 },
-        animated: true,
-        type: "smoothstep"
+        style: {
+          stroke: "#475569",
+          strokeWidth: 4
+        },
+        type: "straight",
+        animated: false
       }));
       setNodes((prev) => [...prev, ...newNodes]);
       setEdges((prev) => [...prev, ...newEdges]);
@@ -217,10 +229,11 @@ function WordWebFlow() {
         className="w-full h-full"
         onNodeClick={onNodeClick}
         defaultEdgeOptions={{
-          style: { stroke: "#000000", strokeWidth: 3 },
-          animated: true,
-          type: "smoothstep"
+          style: { stroke: "#475569", strokeWidth: 4 },
+          type: "straight",
+          animated: false
         }}
+        edgesFocusable={true}
         elementsSelectable={true}
         nodesConnectable={false}>
         <Background variant={BackgroundVariant.Lines} gap={40} size={1} color="rgba(0, 0, 0, 0.1)" />
