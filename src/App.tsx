@@ -1,5 +1,6 @@
-import React, { useState, useCallback } from "react";
-import ReactFlow, { Background, Controls, ReactFlowProvider, useReactFlow } from "reactflow";
+import React, { useState, useCallback, useMemo } from "react";
+import ReactFlow, { Background, Controls, ReactFlowProvider, useReactFlow, BackgroundVariant } from "reactflow";
+import ColoredNode from "./components/ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import "reactflow/dist/style.css";
 import Sidebar from "./components/Sidebar";
@@ -29,6 +30,77 @@ function WordWebFlow() {
   const [edges, setEdges] = useState<Edge[]>([]);
   const reactFlow = useReactFlow();
 
+  // Color palette for each depth
+  const colors = useMemo(
+    () => [
+      { bg: "#222", text: "#fff" },
+      { bg: "#1e3a8a", text: "#fff" },
+      { bg: "#166534", text: "#fff" },
+      { bg: "#7c2d12", text: "#fff" },
+      { bg: "#a21caf", text: "#fff" },
+      { bg: "#b91c1c", text: "#fff" },
+      { bg: "#0e7490", text: "#fff" },
+      { bg: "#f59e42", text: "#fff" }
+    ],
+    []
+  );
+
+  // Helper: check if a position is too close to any node
+  const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 140) => {
+    return nodes.some((n) => {
+      const dx = n.position.x - x;
+      const dy = n.position.y - y;
+      return Math.sqrt(dx * dx + dy * dy) < minDist;
+    });
+  }, []);
+
+  // Helper: Find a non-overlapping position using spiral placement if random fails
+  const findNonOverlappingPosition = useCallback(
+    (startX: number, startY: number, baseRadius: number, depth: number, spreadStep: number, placed: Node[]) => {
+      // First try random placement
+      const minDist = 140; // Increased minimum distance between nodes
+      let tries = 0;
+      while (tries < 50) {
+        // Increased number of tries
+        const angle = Math.random() * 2 * Math.PI;
+        const jitter = Math.random() * 40 - 20; // Add some randomness to radius
+        const radius = baseRadius + (depth - 1) * spreadStep + jitter;
+        const x = startX + radius * Math.cos(angle);
+        const y = startY + radius * Math.sin(angle);
+
+        if (!isOverlapping(x, y, placed, minDist)) {
+          return { x, y };
+        }
+        tries++;
+      }
+
+      // If random placement fails, try spiral placement
+      const spiralStart = 0;
+      const spiralEnd = 4 * Math.PI; // Two full rotations
+      const spiralSteps = 36; // Number of positions to try along spiral
+
+      for (let i = 0; i < spiralSteps; i++) {
+        const t = spiralStart + (spiralEnd - spiralStart) * (i / spiralSteps);
+        const spiralRadius = baseRadius + (depth - 1) * spreadStep + (t / (2 * Math.PI)) * 30;
+        const x = startX + spiralRadius * Math.cos(t);
+        const y = startY + spiralRadius * Math.sin(t);
+
+        if (!isOverlapping(x, y, placed, minDist)) {
+          return { x, y };
+        }
+      }
+
+      // If all else fails, place it further out
+      const fallbackAngle = Math.random() * 2 * Math.PI;
+      const fallbackRadius = baseRadius + (depth - 1) * spreadStep + 200; // Place it far out
+      return {
+        x: startX + fallbackRadius * Math.cos(fallbackAngle),
+        y: startY + fallbackRadius * Math.sin(fallbackAngle)
+      };
+    },
+    [isOverlapping]
+  );
+
   // Handler to create a word web
   const createWordWeb = useCallback(
     (centerWord: string, related: string[]) => {
@@ -36,7 +108,7 @@ function WordWebFlow() {
       const centerId = `center-${centerWord}`;
       const centerNode: Node = {
         id: centerId,
-        data: { label: centerWord, depth: 0 },
+        data: { label: centerWord, depth: 0, color: colors[0] },
         position: { x: center.x, y: center.y },
         type: "default"
       };
@@ -51,80 +123,82 @@ function WordWebFlow() {
 
       // After 0.5s, add related nodes around the center
       setTimeout(() => {
-        const baseRadius = 180;
-        const spreadStep = 120;
+        const baseRadius = 180; // Increased for more spread between layers
+        const spreadStep = 120; // Doubled to create more space between each layer
         const depth = 1;
-        const angleStep = (2 * Math.PI) / Math.max(related.length, 1);
-        const randomOffset = Math.random() * 2 * Math.PI;
-        const relatedNodes: Node[] = related.map((word, i) => {
-          const angle = i * angleStep + randomOffset;
-          return {
+        const placed: Node[] = [centerNode];
+        const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
+          const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+          const node = {
             id: `related-${centerWord}-${word}`,
-            data: { label: word, depth },
-            position: {
-              x: center.x + (baseRadius + (depth - 1) * spreadStep) * Math.cos(angle),
-              y: center.y + (baseRadius + (depth - 1) * spreadStep) * Math.sin(angle)
-            },
-            type: "default"
+            data: { label: word, depth, color: colors[depth % colors.length] },
+            position,
+            type: "colored" as const
           };
+          placed.push(node);
+          return node;
         });
         setNodes([centerNode, ...relatedNodes]);
         setEdges(
           relatedNodes.map((n) => ({
             id: `e-${centerId}-${n.id}`,
             source: centerId,
-            target: n.id
+            target: n.id,
+            style: { stroke: "#000000", strokeWidth: 3 },
+            animated: true,
+            type: "smoothstep"
           }))
         );
+        // Refocus on new nodes
+        reactFlow.fitView({ nodes: relatedNodes, duration: 500 });
       }, 500);
     },
-    [reactFlow]
+    [reactFlow, colors, findNonOverlappingPosition]
   );
 
   // Node click handler to expand web
   const onNodeClick: NodeMouseHandler = async (_event, node) => {
     // Only expand if not the center node and not already expanded
     if (node.id.startsWith("related-") || node.id.startsWith("expanded-")) {
-      // Prevent duplicate expansion
       if (nodes.some((n) => n.id.startsWith(`expanded-${node.id}-`))) return;
-      // Fetch related words
       const results = await searchDatamuse(node.data.label);
-      const related = results.slice(0, 8).map((w: any) => w.word);
-      // Determine depth for this expansion
+      const related = results.slice(0, 4).map((w: { word: string }) => w.word);
       const parentDepth = node.data.depth ?? 1;
       const depth = parentDepth + 1;
-      const baseRadius = 180;
-      const spreadStep = 120;
-      const angleStep = (2 * Math.PI) / Math.max(related.length, 1);
-      const randomOffset = Math.random() * 2 * Math.PI;
-      const newNodes: Node[] = related.map((word, i) => {
-        const angle = i * angleStep + randomOffset;
-        return {
+      const baseRadius = 140; // Increased for more spread between layers
+      const spreadStep = 100; // Increased to match the larger spacing
+      const placed: Node[] = [node, ...nodes];
+      const newNodes: Node[] = related.map((word) => {
+        const position = findNonOverlappingPosition(
+          node.position.x,
+          node.position.y,
+          baseRadius,
+          depth,
+          spreadStep,
+          placed
+        );
+        const n = {
           id: `expanded-${node.id}-${word}`,
-          data: { label: word, depth },
-          position: {
-            x: node.position.x + (baseRadius + (depth - 1) * spreadStep) * Math.cos(angle),
-            y: node.position.y + (baseRadius + (depth - 1) * spreadStep) * Math.sin(angle)
-          },
-          type: "default"
+          data: { label: word, depth, color: colors[depth % colors.length] },
+          position,
+          type: "colored" as const
         };
+        placed.push(n);
+        return n;
       });
+      // Add edges from parent node to each new node
+      const newEdges = newNodes.map((n) => ({
+        id: `e-${node.id}-${n.id}`,
+        source: node.id,
+        target: n.id,
+        style: { stroke: "#000000", strokeWidth: 3 },
+        animated: true,
+        type: "smoothstep"
+      }));
       setNodes((prev) => [...prev, ...newNodes]);
-      setEdges((prev) => [
-        ...prev,
-        ...newNodes.map((n) => ({
-          id: `e-${node.id}-${n.id}`,
-          source: node.id,
-          target: n.id
-        }))
-      ]);
-      // Zoom out a bit
-      const currentZoom = reactFlow.getZoom();
-      reactFlow.setViewport({
-        x: 0,
-        y: 0,
-        zoom: Math.max(0.5, currentZoom - 0.15)
-      });
+      setEdges((prev) => [...prev, ...newEdges]);
+      // Refocus on new nodes
+      reactFlow.fitView({ nodes: newNodes, duration: 500 });
     }
   };
 
@@ -133,19 +207,25 @@ function WordWebFlow() {
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        nodeTypes={{ colored: ColoredNode }}
         fitView
         panOnScroll
         zoomOnScroll
         zoomOnPinch
-        panOnDrag
         minZoom={0.5}
         maxZoom={2}
         className="w-full h-full"
-        onNodeClick={onNodeClick}>
-        <Background variant="lines" gap={40} size={1} color="rgba(0, 0, 0, 0.1)" />
+        onNodeClick={onNodeClick}
+        defaultEdgeOptions={{
+          style: { stroke: "#000000", strokeWidth: 3 },
+          animated: true,
+          type: "smoothstep"
+        }}
+        elementsSelectable={true}
+        nodesConnectable={false}>
+        <Background variant={BackgroundVariant.Lines} gap={40} size={1} color="rgba(0, 0, 0, 0.1)" />
         <Controls />
       </ReactFlow>
-      {/* Overlay Sidebar */}
       <Sidebar onSearch={createWordWeb} />
     </>
   );

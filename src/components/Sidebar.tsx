@@ -71,7 +71,7 @@ export default function Sidebar({ onSearch }: SidebarProps) {
           ←
         </button>
         <div className="mt-16 flex flex-col gap-4">
-          <h2 className="text-lg font-bold text-gray-100">WordWeb Controls</h2>
+          <h2 className="text-lg font-bold text-gray-100">wordweb. Controls</h2>
           {/* Search input */}
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
