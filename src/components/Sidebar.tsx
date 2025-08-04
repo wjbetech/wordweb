@@ -2,11 +2,15 @@
 import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
 
+type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
+
 type SidebarProps = {
   onSearch?: (centerWord: string, related: string[]) => void;
+  onLineStyleChange?: (style: LineStyle) => void;
+  currentLineStyle?: LineStyle;
 };
 
-export default function Sidebar({ onSearch }: SidebarProps) {
+export default function Sidebar({ onSearch, onLineStyleChange, currentLineStyle = "smoothstep" }: SidebarProps) {
   // Persist sidebar state in localStorage
   const [open, setOpen] = useState(() => {
     if (typeof window !== "undefined") {
@@ -105,6 +109,21 @@ export default function Sidebar({ onSearch }: SidebarProps) {
               </div>
             </div>
           )}
+
+          {/* Line style selector */}
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-gray-300 mb-2">Line Style</label>
+            <select
+              value={currentLineStyle}
+              onChange={(e) => onLineStyleChange?.(e.target.value as LineStyle)}
+              className="w-full bg-zinc-700 text-gray-200 rounded px-3 py-2 cursor-pointer hover:bg-zinc-600">
+              <option value="default">Default</option>
+              <option value="straight">Straight</option>
+              <option value="smoothstep">Smooth Step</option>
+              <option value="step">Step</option>
+              <option value="bezier">Bezier</option>
+            </select>
+          </div>
 
           {/* Placeholder action buttons */}
           <div className="flex flex-col gap-2 mt-4">

@@ -28,7 +28,8 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           border: "none",
           minWidth: 60,
           textAlign: "center",
-          userSelect: "none"
+          userSelect: "none",
+          cursor: "pointer"
         }}>
         {data.label}
       </div>
