@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import ReactFlow, { Background, Controls, ReactFlowProvider, useReactFlow, BackgroundVariant } from "reactflow";
 import ColoredNode from "./components/ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
