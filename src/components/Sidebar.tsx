@@ -1,6 +1,7 @@
 // src/components/Sidebar.tsx
 import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
+import type { DatamuseWord } from "../api/datamuse";
 
 type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
@@ -50,7 +51,7 @@ export default function Sidebar({ onSearch, onLineStyleChange, currentLineStyle 
     try {
       const results = await searchDatamuse(searchTerm);
       // Get 5-8 related words (or less if not enough)
-      const related = results.slice(0, 8).map((w: any) => w.word);
+      const related = results.slice(0, 8).map((w: DatamuseWord) => w.word);
       if (onSearch) onSearch(searchTerm, related);
     } catch (err) {
       console.error(err);
