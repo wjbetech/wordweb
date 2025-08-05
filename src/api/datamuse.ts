@@ -1,9 +1,5 @@
 // Type for Datamuse API response
-export interface DatamuseWord {
-  word: string;
-  score: number;
-  tags?: string[];
-}
+import type { DatamuseWord } from "../types/Datamuse";
 
 // Fetch related words from Datamuse API
 export async function searchDatamuse(term: string): Promise<DatamuseWord[]> {

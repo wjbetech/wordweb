@@ -1,7 +1,7 @@
 // src/components/Sidebar.tsx
 import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
-import type { DatamuseWord } from "../api/datamuse";
+import type { DatamuseWord } from "../types/Datamuse";
 
 type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
@@ -9,9 +9,19 @@ type SidebarProps = {
   onSearch?: (centerWord: string, related: string[]) => void;
   onLineStyleChange?: (style: LineStyle) => void;
   currentLineStyle?: LineStyle;
+  onThemeChange?: (isDark: boolean) => void;
+  isDark?: boolean;
 };
 
-export default function Sidebar({ onSearch, onLineStyleChange, currentLineStyle = "smoothstep" }: SidebarProps) {
+import ThemeToggle from "./ThemeToggle";
+
+export default function Sidebar({
+  onSearch,
+  onLineStyleChange,
+  currentLineStyle = "smoothstep",
+  onThemeChange,
+  isDark = false
+}: SidebarProps) {
   // Persist sidebar state in localStorage
   const [open, setOpen] = useState(() => {
     if (typeof window !== "undefined") {
@@ -67,14 +77,17 @@ export default function Sidebar({ onSearch, onLineStyleChange, currentLineStyle 
         } h-[70vh] w-64 rounded-xl bg-zinc-800 shadow-xl p-4 z-20 transform transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}>
-        {/* Toggle button inside sidebar */}
-        <button
-          className="absolute top-4 left-4 px-2 py-2 text-white rounded-lg transition-colors cursor-pointer z-50 text-3xl mb-4 bg-transparent hover:bg-[#4c5c68] focus:outline-none"
-          style={{ background: "none" }}
-          onClick={() => setOpen(false)}
-          aria-label="Close sidebar">
-          ←
-        </button>
+        {/* Header controls */}
+        <div className="absolute top-4 left-0 right-4 flex justify-between items-center px-4">
+          <button
+            className="px-2 py-2 text-white rounded-lg transition-colors cursor-pointer z-50 text-3xl bg-transparent hover:bg-[#4c5c68] focus:outline-none"
+            style={{ background: "none" }}
+            onClick={() => setOpen(false)}
+            aria-label="Close sidebar">
+            ←
+          </button>
+          <ThemeToggle isDark={isDark} onToggle={() => onThemeChange?.(!isDark)} />
+        </div>
         <div className="mt-16 flex flex-col gap-4">
           <h2 className="text-lg font-bold text-gray-100">wordweb. Controls</h2>
           {/* Search input */}
