@@ -1,0 +1,26 @@
+{
+  "api": {
+    "datamuse": {
+      "baseUrl": "https://api.datamuse.com",
+      "timeout": 5000,
+      "maxResults": 50
+    }
+  },
+  "app": {
+    "name": "WordWeb",
+    "version": "1.0.0",
+    "defaultTheme": "light",
+    "maxNodes": 100,
+    "animationDuration": 300
+  },
+  "development": {
+    "enableDebugLogs": false,
+    "mockApi": false,
+    "port": 3000
+  },
+  "features": {
+    "coloredNodes": true,
+    "tooltips": true,
+    "graphAnimations": true
+  }
+}
