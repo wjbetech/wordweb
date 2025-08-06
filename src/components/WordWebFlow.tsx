@@ -22,8 +22,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
-  const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
+
+  // Set ReactFlow canvas background color based on theme
+  const canvasBg = isDark ? "bg-gray-800" : "bg-white";
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 140) => {
@@ -203,16 +205,26 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     }
   };
 
+  const nodeTypes = { colored: ColoredNode };
+
   return (
     <>
+      <div
+        className="fixed inset-0 flex items-center justify-center overflow-hidden pointer-events-none"
+        style={{ zIndex: 1 }}>
+        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#e5e7eb" : "#374151" }}>
+          wordweb.
+        </div>
+      </div>
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        nodeTypes={{ colored: ColoredNode }}
+        nodeTypes={nodeTypes}
         fitView
         minZoom={0.5}
         maxZoom={2}
-        className="w-full h-full"
+        className={canvasBg + " w-full h-full"}
+        style={{ background: isDark ? "#1f2937" : "#ffffff" }}
         onNodeClick={onNodeClick}
         onWheel={(event) => {
           if (!event.ctrlKey) {
@@ -232,7 +244,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         edgesFocusable={true}
         elementsSelectable={true}
         nodesConnectable={false}>
-        <Background color={gridColor} variant={BackgroundVariant.Lines} />
+        <Background
+          color={isDark ? "#374151" : "#e5e7eb"}
+          variant={BackgroundVariant.Lines}
+          gap={20}
+          offset={1}
+          style={{ backgroundColor: "transparent" }}
+        />
         <Controls />
       </ReactFlow>
       <Sidebar
