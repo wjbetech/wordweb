@@ -1,10 +1,12 @@
 import { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
+import Spinner from "./Spinner";
 
 const ColoredNode = memo(({ data }: NodeProps) => {
   const bg = data?.color?.bg || "#fff";
   const color = data?.color?.text || "#222";
   const isExpanded = data?.isExpanded || false;
+  const isLoading = data?.isLoading || false;
 
   return (
     <>
@@ -31,15 +33,22 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           minWidth: 60,
           textAlign: "center",
           userSelect: "none",
-          cursor: "pointer",
-          opacity: isExpanded ? 0.6 : 1,
+          cursor: isLoading ? "not-allowed" : "pointer",
+          opacity: isExpanded ? 0.6 : isLoading ? 0.7 : 1,
           position: "relative",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: "6px"
         }}>
-        {data.label}
+        {isLoading ? (
+          <>
+            <Spinner size="sm" className={isExpanded ? "text-white" : "text-current"} />
+            <span style={{ fontSize: 14 }}>Loading...</span>
+          </>
+        ) : (
+          data.label
+        )}
       </div>
       <Handle
         type="source"

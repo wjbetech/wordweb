@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
 import type { DatamuseWord } from "../types/Datamuse";
+import Spinner from "./Spinner";
 
 type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
@@ -11,6 +12,7 @@ type SidebarProps = {
   currentLineStyle?: LineStyle;
   onThemeChange?: (isDark: boolean) => void;
   isDark?: boolean;
+  isLoading?: boolean;
 };
 
 import ThemeToggle from "./ThemeToggle";
@@ -20,7 +22,8 @@ export default function Sidebar({
   onLineStyleChange,
   currentLineStyle = "smoothstep",
   onThemeChange,
-  isDark = false
+  isDark = false,
+  isLoading: externalLoading = false
 }: SidebarProps) {
   // Persist sidebar state in localStorage
   const [open, setOpen] = useState(() => {
@@ -33,6 +36,7 @@ export default function Sidebar({
 
   // Search term and recent searches
   const [searchTerm, setSearchTerm] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const [recent, setRecent] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
@@ -51,31 +55,47 @@ export default function Sidebar({
   // Handle search
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (!searchTerm.trim()) return;
+    const combinedLoading = isLoading || externalLoading;
+    if (!searchTerm.trim() || combinedLoading) return;
+
+    setIsLoading(true);
+
     // Add to recent searches
     setRecent((prev) => {
       const updated = [searchTerm, ...prev.filter((t) => t !== searchTerm)].slice(0, 8);
       return updated;
     });
+
     // Call Datamuse API and trigger word web
     try {
-      const results = await searchDatamuse(searchTerm);
+      // Add artificial delay for better UX feedback (minimum 800ms)
+      const [results] = await Promise.all([
+        searchDatamuse(searchTerm),
+        new Promise((resolve) => setTimeout(resolve, 800))
+      ]);
+
       // Get 5-8 related words (or less if not enough)
       const related = results.slice(0, 8).map((w: DatamuseWord) => w.word);
-      if (onSearch) onSearch(searchTerm, related);
+      if (onSearch) await onSearch(searchTerm, related);
     } catch (err) {
-      console.error(err);
+      console.error("Search failed:", err);
+    } finally {
+      setIsLoading(false);
     }
   }
 
   // Handle removing a search term from recent searches
   function handleRemoveRecentSearch(termToRemove: string, e: React.MouseEvent) {
     e.stopPropagation(); // Prevent triggering the search when clicking delete
+    const combinedLoading = isLoading || externalLoading;
+    if (combinedLoading) return;
     setRecent((prev) => prev.filter((term) => term !== termToRemove));
   }
 
   // Handle clicking a recent search term
   function handleRecentSearchClick(term: string) {
+    const combinedLoading = isLoading || externalLoading;
+    if (combinedLoading) return;
     setSearchTerm(term);
   }
 
@@ -122,11 +142,15 @@ export default function Sidebar({
                 placeholder="Search a word..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                disabled={isLoading || externalLoading}
                 style={{ fontSize: "14px" }}
               />
             </label>
-            <button type="submit" className="btn btn-success btn-sm text-[14px]">
-              Go
+            <button
+              type="submit"
+              className="btn btn-success btn-sm text-[14px] min-w-[60px] flex items-center justify-center"
+              disabled={isLoading || externalLoading || !searchTerm.trim()}>
+              {isLoading || externalLoading ? <Spinner size="sm" className="text-white" /> : "Go"}
             </button>
           </form>
 
@@ -140,7 +164,9 @@ export default function Sidebar({
                 {recent.map((term) => (
                   <div
                     key={term}
-                    className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 ${
+                    className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity ${
+                      isLoading || externalLoading ? "opacity-50 cursor-not-allowed" : ""
+                    } ${
                       isDark
                         ? "bg-zinc-700 text-gray-200 hover:bg-zinc-600"
                         : "bg-zinc-600 text-white hover:bg-zinc-700"
@@ -150,9 +176,10 @@ export default function Sidebar({
                     </span>
                     <button
                       onClick={(e) => handleRemoveRecentSearch(term, e)}
+                      disabled={isLoading || externalLoading}
                       className={`text-sm leading-none cursor-pointer transition-colors duration-200 font-bold ${
-                        isDark ? "text-gray-400 hover:text-red-400" : "text-gray-300 hover:text-red-300"
-                      }`}
+                        isLoading || externalLoading ? "cursor-not-allowed" : ""
+                      } ${isDark ? "text-gray-400 hover:text-red-400" : "text-gray-300 hover:text-red-300"}`}
                       aria-label={`Remove ${term} from recent searches`}
                       title={`Remove ${term}`}>
                       ×
@@ -209,9 +236,15 @@ export default function Sidebar({
 
           {/* Action buttons */}
           <div className="flex flex-col gap-2 mt-3">
-            <button className="btn btn-primary btn-wide btn-sm text-[14px]">Save wordweb</button>
-            <button className="btn btn-accent btn-wide btn-sm text-[14px]">Load wordweb</button>
-            <button className="btn btn-error btn-wide btn-sm text-[14px]">Clear</button>
+            <button className="btn btn-primary btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
+              Save wordweb
+            </button>
+            <button className="btn btn-accent btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
+              Load wordweb
+            </button>
+            <button className="btn btn-error btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
+              Clear
+            </button>
           </div>
         </div>
       </div>

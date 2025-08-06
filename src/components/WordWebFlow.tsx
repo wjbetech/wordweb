@@ -3,6 +3,7 @@ import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from
 import ColoredNode from "./ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import Sidebar from "./Sidebar";
+import LoadingOverlay from "./LoadingOverlay";
 import { searchDatamuse } from "../api/datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
 
@@ -20,6 +21,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [lineStyle, setLineStyle] = useState<LineStyle>("smoothstep");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
+  const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -145,7 +148,24 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   // Handler to create a word web
   const createWordWeb = useCallback(
-    (centerWord: string, related: string[]) => {
+    async (centerWord: string, related: string[]) => {
+      setIsInitialLoading(true);
+
+      // Clear existing nodes and edges immediately
+      setNodes([]);
+      setEdges([]);
+      setExpandedNodes(new Set());
+
+      // Reset viewport
+      reactFlow.setViewport({
+        x: 0,
+        y: 0,
+        zoom: 1
+      });
+
+      // Add artificial delay for better UX feedback (minimum 1200ms for initial load)
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
       // Center node
       const centerId = `center-${centerWord}`;
       const centerNode: Node = {
@@ -161,13 +181,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       };
 
       setNodes([centerNode]);
-      setEdges([]);
-      setExpandedNodes(new Set());
-      reactFlow.setViewport({
-        x: 0,
-        y: 0,
-        zoom: 1
-      });
+      setIsInitialLoading(false);
 
       // After 0.5s, add related nodes around the center
       setTimeout(() => {
@@ -224,6 +238,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       // Only process clicks on related or expanded nodes (not center node)
       if (node.id.startsWith("related-") || node.id.startsWith("expanded-")) {
         const isCurrentlyExpanded = expandedNodes.has(node.id);
+        const isCurrentlyLoading = loadingNodes.has(node.id);
+
+        // Don't allow clicks while loading
+        if (isCurrentlyLoading) return;
 
         if (isCurrentlyExpanded) {
           // Collapse - remove all child nodes and edges recursively
@@ -258,67 +276,97 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: false } } : n))
           );
         } else {
-          // Expand - add child nodes
-          const results = await searchDatamuse(node.data.label);
-          const related = results.slice(0, 4).map((w: { word: string }) => w.word);
-          const parentDepth = node.data.depth ?? 1;
-          const depth = parentDepth + 1;
-          const baseRadius = 160;
-          const spreadStep = 120;
-          const placed: Node[] = [node, ...nodes];
+          // Set loading state
+          setLoadingNodes((prev) => new Set([...prev, node.id]));
 
-          const newNodes: Node[] = related.map((word) => {
-            const position = findNonOverlappingPosition(
-              node.position.x,
-              node.position.y,
-              baseRadius,
-              depth,
-              spreadStep,
-              placed
-            );
-            const n = {
-              id: `expanded-${node.id}-${word}`,
-              data: {
-                label: word,
+          // Update the node to show loading state
+          setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: true } } : n)));
+
+          try {
+            // Add artificial delay for better UX feedback (minimum 600ms)
+            const [results] = await Promise.all([
+              searchDatamuse(node.data.label),
+              new Promise((resolve) => setTimeout(resolve, 600))
+            ]);
+
+            const related = results.slice(0, 4).map((w: { word: string }) => w.word);
+            const parentDepth = node.data.depth ?? 1;
+            const depth = parentDepth + 1;
+            const baseRadius = 160;
+            const spreadStep = 120;
+            const placed: Node[] = [node, ...nodes];
+
+            const newNodes: Node[] = related.map((word) => {
+              const position = findNonOverlappingPosition(
+                node.position.x,
+                node.position.y,
+                baseRadius,
                 depth,
-                color: colors[depth % colors.length],
-                isExpanded: false
+                spreadStep,
+                placed
+              );
+              const n = {
+                id: `expanded-${node.id}-${word}`,
+                data: {
+                  label: word,
+                  depth,
+                  color: colors[depth % colors.length],
+                  isExpanded: false
+                },
+                position,
+                type: "colored" as const
+              };
+              placed.push(n);
+              return n;
+            });
+
+            // Add edges from parent node to each new node
+            const newEdges = newNodes.map((n) => ({
+              id: `e-${node.id}-${n.id}`,
+              source: node.id,
+              target: n.id,
+              style: {
+                stroke: edgeColor,
+                strokeWidth: 1.5
               },
-              position,
-              type: "colored" as const
-            };
-            placed.push(n);
-            return n;
-          });
+              type: lineStyle,
+              animated: false
+            }));
 
-          // Add edges from parent node to each new node
-          const newEdges = newNodes.map((n) => ({
-            id: `e-${node.id}-${n.id}`,
-            source: node.id,
-            target: n.id,
-            style: {
-              stroke: edgeColor,
-              strokeWidth: 1.5
-            },
-            type: lineStyle,
-            animated: false
-          }));
+            setNodes((prev) => [...prev, ...newNodes]);
+            setEdges((prev) => [...prev, ...newEdges]);
 
-          setNodes((prev) => [...prev, ...newNodes]);
-          setEdges((prev) => [...prev, ...newEdges]);
+            // Mark this node as expanded
+            setExpandedNodes((prev) => new Set([...prev, node.id]));
 
-          // Mark this node as expanded
-          setExpandedNodes((prev) => new Set([...prev, node.id]));
+            // Update the node's visual state (remove loading, set expanded)
+            setNodes((prev) =>
+              prev.map((n) =>
+                n.id === node.id ? { ...n, data: { ...n.data, isExpanded: true, isLoading: false } } : n
+              )
+            );
 
-          // Update the node's visual state
-          setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: true } } : n)));
+            // Refocus on new nodes
+            reactFlow.fitView({ nodes: newNodes, duration: 500 });
+          } catch (error) {
+            console.error("Failed to expand node:", error);
 
-          // Refocus on new nodes
-          reactFlow.fitView({ nodes: newNodes, duration: 500 });
+            // Reset node state on error
+            setNodes((prev) =>
+              prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n))
+            );
+          } finally {
+            // Remove from loading state
+            setLoadingNodes((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(node.id);
+              return newSet;
+            });
+          }
         }
       }
     },
-    [nodes, expandedNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow]
+    [nodes, expandedNodes, loadingNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow]
   );
 
   const nodeTypes = { colored: ColoredNode };
@@ -332,6 +380,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           wordweb.
         </div>
       </div>
+
+      {isInitialLoading && <LoadingOverlay isDark={isDark} message="Generating word web..." />}
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -375,6 +426,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         currentLineStyle={lineStyle}
         isDark={isDark}
         onThemeChange={onThemeChange}
+        isLoading={isInitialLoading}
       />
     </>
   );
