@@ -100,7 +100,7 @@
 #### Enhanced Interactions
 
 - [ ] **Node Manipulation**: Allow users to drag/move nodes for custom layouts
-- [ ] **Node Controls**: Add delete/lock buttons for individual nodes
+- [x] **Node Controls**: Add delete/lock buttons for individual nodes - Delete functionality added to recent searches
 - [ ] **Tooltips**: Show frequency scores (DatamuseWord.score) and definitions on hover
 - [ ] **Right-click Context Menus**: Custom search options per node
 
