@@ -1,41 +1,57 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
 @import "tailwindcss";
+@plugin "daisyui";
+@tailwind utilities;
 
-:root {
-  font-family: "Manrope", system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  font-size: 16px;
+@layer base {
+  :root,
+  [data-theme="light"] {
+    --bg-color: #ffffff;
+    --text-color: #213547;
+    --bg-color-inv: #242424;
+    --text-color-inv: rgba(255, 255, 255, 0.87);
+    --toggle-icon: #facc15; /* light yellow */
+    --toggle-border: #facc15;
+  }
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  [data-theme="dark"] {
+    --bg-color: #242424;
+    --text-color: rgba(255, 255, 255, 0.87);
+    --bg-color-inv: #ffffff;
+    --text-color-inv: #213547;
+    --toggle-icon: #a3a3a3; /* medium gray */
+    --toggle-border: #a3a3a3;
+  }
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  html {
+    font-family: "Manrope", system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-  font-size: 16px;
+  body {
+    margin: 0;
+    display: flex;
+    place-items: center;
+    min-width: 320px;
+    min-height: 100vh;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.theme-toggle-icon {
+  stroke: var(--toggle-icon);
 }
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.theme-toggle-border {
+  border-color: var(--toggle-border);
+}
+.theme-toggle-bg {
+  background-color: var(--toggle-icon) !important;
+}
+.theme-toggle-bg:checked {
+  background-color: var(--toggle-border) !important;
 }

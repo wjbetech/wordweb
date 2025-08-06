@@ -10,7 +10,7 @@ export const useColorPalette = () => {
       { bg: "#8b5cf6", text: "#fff" }, // violet
       { bg: "#ef4444", text: "#fff" }, // red
       { bg: "#06b6d4", text: "#fff" }, // cyan
-      { bg: "#f59e0b", text: "#fff" }, // amber
+      { bg: "#f59e0b", text: "#fff" } // amber
     ],
     []
   );

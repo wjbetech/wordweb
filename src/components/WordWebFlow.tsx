@@ -22,7 +22,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
-  const gridColor = isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)";
+  const gridColor = isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)";
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
 
   // Helper: check if a position is too close to any node
@@ -232,7 +232,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         edgesFocusable={true}
         elementsSelectable={true}
         nodesConnectable={false}>
-        <Background variant={BackgroundVariant.Lines} gap={40} size={1} color={gridColor} />
+        <Background color={gridColor} variant={BackgroundVariant.Lines} />
         <Controls />
       </ReactFlow>
       <Sidebar

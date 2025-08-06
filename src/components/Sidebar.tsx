@@ -74,13 +74,17 @@ export default function Sidebar({
       <div
         className={`fixed top-4 ${
           open ? "left-3" : "left-0"
-        } h-[70vh] w-64 rounded-xl bg-zinc-800 shadow-xl p-4 z-20 transform transition-transform duration-300 ${
+        } h-[70vh] w-64 rounded-xl bg-zinc-800 shadow-xl p-4 z-20 transform transition-transform duration-300  ${
           open ? "translate-x-0" : "-translate-x-full"
-        }`}>
+        }`}
+        style={{
+          fontFamily: "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          fontWeight: 500
+        }}>
         {/* Header controls */}
         <div className="absolute top-4 left-0 right-4 flex justify-between items-center px-4">
           <button
-            className="px-2 py-2 text-white rounded-lg transition-colors cursor-pointer z-50 text-3xl bg-transparent hover:bg-[#4c5c68] focus:outline-none"
+            className="px-2 py-2 text-white rounded-lg transition-colors cursor-pointer z-50 text-3xl bg-transparent hover:bg-[#4c5c68] focus:outline-none "
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
             aria-label="Close sidebar">
@@ -94,14 +98,14 @@ export default function Sidebar({
           <form onSubmit={handleSearch} className="flex gap-2">
             <input
               type="text"
-              className="flex-1 min-w-0 rounded px-2 py-1 bg-zinc-700 text-white placeholder-gray-400 focus:outline-none"
+              className="flex-1 min-w-0 rounded px-2 py-1 bg-zinc-700 text-white placeholder-gray-400 focus:outline-none "
               placeholder="Search a word..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             <button
               type="submit"
-              className="shrink-0 bg-green-600 hover:bg-green-500/90 text-white px-3 py-1 rounded cursor-pointer"
+              className="shrink-0 bg-green-600 hover:bg-green-500/90 text-white px-3 py-1 rounded cursor-pointer "
               style={{ maxWidth: "4.5rem" }}>
               Go
             </button>
@@ -110,12 +114,12 @@ export default function Sidebar({
           {/* Recent searches */}
           {recent.length > 0 && (
             <div>
-              <div className="text-xs text-gray-400 mb-2">Recent searches:</div>
+              <div className="text-xs text-gray-400 mb-2 ">Recent searches:</div>
               <div className="flex flex-wrap gap-1">
                 {recent.map((term) => (
                   <button
                     key={term}
-                    className="bg-zinc-700 text-gray-200 rounded px-2 py-1 text-xs hover:bg-zinc-600 cursor-pointer"
+                    className="bg-zinc-700 text-gray-200 rounded px-2 py-1 text-xs hover:bg-zinc-600 cursor-pointer "
                     onClick={() => setSearchTerm(term)}>
                     {term}
                   </button>
@@ -126,11 +130,11 @@ export default function Sidebar({
 
           {/* Line style selector */}
           <div className="mt-6">
-            <label className="block text-sm font-medium text-gray-300 mb-2">Line Style</label>
+            <label className="block text-sm text-gray-300 mb-2 ">Line Style</label>
             <select
               value={currentLineStyle}
               onChange={(e) => onLineStyleChange?.(e.target.value as LineStyle)}
-              className="w-full bg-zinc-700 text-gray-200 rounded px-3 py-2 cursor-pointer hover:bg-zinc-600">
+              className="w-full bg-zinc-700 text-gray-200 rounded px-3 py-2 cursor-pointer hover:bg-zinc-600 ">
               <option value="default">Default</option>
               <option value="straight">Straight</option>
               <option value="smoothstep">Smooth Step</option>
@@ -157,7 +161,7 @@ export default function Sidebar({
       {/* Minimal toggle button when sidebar is closed */}
       {!open && (
         <button
-          className="fixed top-4 left-0 z-50 px-2 py-2 bg-zinc-800 text-white rounded-r-lg shadow hover:bg-zinc-800/90 transition-colors cursor-pointer text-2xl"
+          className="fixed top-4 left-0 z-50 px-2 py-2 bg-zinc-800 text-white rounded-r-lg shadow hover:bg-zinc-800/90 transition-colors cursor-pointer text-2xl "
           onClick={() => setOpen(true)}
           aria-label="Open sidebar">
           ☰
