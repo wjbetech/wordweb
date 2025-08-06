@@ -25,6 +25,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isUpdatingLineStyle, setIsUpdatingLineStyle] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -80,6 +81,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       }))
     );
   }, [edgeColor]);
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
@@ -200,6 +209,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const createWordWeb = useCallback(
     async (centerWord: string, related: string[]) => {
       setIsInitialLoading(true);
+      setError(null);
 
       // Clear existing nodes and edges immediately
       setNodes([]);
@@ -213,71 +223,77 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         zoom: 1
       });
 
-      // Add artificial delay for better UX feedback (minimum 1200ms for initial load)
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      try {
+        // Add artificial delay for better UX feedback (minimum 1200ms for initial load)
+        await new Promise((resolve) => setTimeout(resolve, 1200));
 
-      // Center node
-      const centerId = `center-${centerWord}`;
-      const centerNode: Node = {
-        id: centerId,
-        data: {
-          label: centerWord,
-          depth: 0,
-          color: colors[0],
-          isExpanded: false
-        },
-        position: { x: center.x, y: center.y },
-        type: "colored"
-      };
-
-      setNodes([centerNode]);
-      setIsInitialLoading(false);
-
-      // After 0.5s, add related nodes around the center
-      setTimeout(() => {
-        const baseRadius = 220; // Increased for more spread between layers
-        const spreadStep = 140; // Increased to create more space between each layer
-        const depth = 1;
-        const placed: Node[] = [centerNode];
-        const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
-          const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
-          const node = {
-            id: `related-${centerWord}-${word}`,
-            data: {
-              label: word,
-              depth,
-              color: colors[depth % colors.length],
-              isExpanded: false
-            },
-            position,
-            type: "colored" as const
-          };
-          placed.push(node);
-          return node;
-        });
-        setNodes([centerNode, ...relatedNodes]);
-        const initialEdges = relatedNodes.map((n) => ({
-          id: `e-${centerId}-${n.id}`,
-          source: centerId,
-          target: n.id,
-          style: {
-            stroke: edgeColor,
-            strokeWidth: 1.5
+        // Center node
+        const centerId = `center-${centerWord}`;
+        const centerNode: Node = {
+          id: centerId,
+          data: {
+            label: centerWord,
+            depth: 0,
+            color: colors[0],
+            isExpanded: false
           },
-          type: lineStyle,
-          animated: false
-        }));
-        setEdges(initialEdges);
+          position: { x: center.x, y: center.y },
+          type: "colored"
+        };
 
-        // Auto-zoom to fit all nodes (center + related) with smooth animation
+        setNodes([centerNode]);
+        setIsInitialLoading(false);
+
+        // After 0.5s, add related nodes around the center
         setTimeout(() => {
-          reactFlow.fitView({
-            nodes: [centerNode, ...relatedNodes],
-            duration: 800,
-            padding: 0.15 // Add 15% padding around the nodes for better visibility
+          const baseRadius = 220; // Increased for more spread between layers
+          const spreadStep = 140; // Increased to create more space between each layer
+          const depth = 1;
+          const placed: Node[] = [centerNode];
+          const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
+            const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+            const node = {
+              id: `related-${centerWord}-${word}`,
+              data: {
+                label: word,
+                depth,
+                color: colors[depth % colors.length],
+                isExpanded: false
+              },
+              position,
+              type: "colored" as const
+            };
+            placed.push(node);
+            return node;
           });
-        }, 100); // Small delay to ensure nodes are rendered
-      }, 500);
+          setNodes([centerNode, ...relatedNodes]);
+          const initialEdges = relatedNodes.map((n) => ({
+            id: `e-${centerId}-${n.id}`,
+            source: centerId,
+            target: n.id,
+            style: {
+              stroke: edgeColor,
+              strokeWidth: 1.5
+            },
+            type: lineStyle,
+            animated: false
+          }));
+          setEdges(initialEdges);
+
+          // Auto-zoom to fit all nodes (center + related) with smooth animation
+          setTimeout(() => {
+            reactFlow.fitView({
+              nodes: [centerNode, ...relatedNodes],
+              duration: 800,
+              padding: 0.15 // Add 15% padding around the nodes for better visibility
+            });
+          }, 100); // Small delay to ensure nodes are rendered
+        }, 500);
+      } catch (error) {
+        console.error("Failed to create word web:", error);
+        setError("Failed to create word web. Please try again.");
+        setIsInitialLoading(false);
+      }
     },
     [reactFlow, colors, findNonOverlappingPosition, lineStyle, edgeColor]
   );
@@ -400,6 +416,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             reactFlow.fitView({ nodes: newNodes, duration: 500 });
           } catch (error) {
             console.error("Failed to expand node:", error);
+            setError("Failed to expand node. Please try again.");
 
             // Reset node state on error
             setNodes((prev) =>
@@ -479,6 +496,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         isDark={isDark}
         onThemeChange={onThemeChange}
         isLoading={isInitialLoading}
+        error={error}
       />
     </>
   );

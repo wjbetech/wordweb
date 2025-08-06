@@ -13,6 +13,7 @@ type SidebarProps = {
   onThemeChange?: (isDark: boolean) => void;
   isDark?: boolean;
   isLoading?: boolean;
+  error?: string | null;
 };
 
 import ThemeToggle from "./ThemeToggle";
@@ -23,7 +24,8 @@ export default function Sidebar({
   currentLineStyle = "smoothstep",
   onThemeChange,
   isDark = false,
-  isLoading: externalLoading = false
+  isLoading: externalLoading = false,
+  error = null
 }: SidebarProps) {
   // Persist sidebar state in localStorage
   const [open, setOpen] = useState(() => {
@@ -127,6 +129,22 @@ export default function Sidebar({
         </div>
         <div className="mt-12 flex flex-col gap-3">
           <h2 className={`text-base font-bold ${isDark ? "text-gray-100" : "text-slate-800"}`}>wordweb. Controls</h2>
+
+          {/* Error message */}
+          {error && (
+            <div
+              className={`p-2 rounded-lg text-sm mb-2 ${
+                isDark
+                  ? "bg-red-900/30 text-red-200 border border-red-800"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}>
+              <div className="flex items-start gap-2">
+                <span className="text-red-500 font-bold">⚠</span>
+                <span>{error}</span>
+              </div>
+            </div>
+          )}
+
           {/* Search input */}
           <form onSubmit={handleSearch} className="flex gap-2 mb-2">
             <label className="input input-sm flex-1 flex items-center gap-2">
