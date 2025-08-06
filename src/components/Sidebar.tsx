@@ -14,6 +14,12 @@ type SidebarProps = {
   isDark?: boolean;
   isLoading?: boolean;
   error?: string | null;
+  onSave?: () => void;
+  onClear?: () => void;
+  recentSearches?: string[];
+  onRecentSearchesChange?: (searches: string[]) => void;
+  sidebarOpen?: boolean;
+  onSidebarToggle?: (open: boolean) => void;
 };
 
 import ThemeToggle from "./ThemeToggle";
@@ -25,10 +31,17 @@ export default function Sidebar({
   onThemeChange,
   isDark = false,
   isLoading: externalLoading = false,
-  error = null
+  error = null,
+  onSave,
+  onClear,
+  recentSearches: externalRecentSearches = [],
+  onRecentSearchesChange,
+  sidebarOpen: externalSidebarOpen,
+  onSidebarToggle
 }: SidebarProps) {
-  // Persist sidebar state in localStorage
+  // Persist sidebar state in localStorage (fallback if no external state)
   const [open, setOpen] = useState(() => {
+    if (externalSidebarOpen !== undefined) return externalSidebarOpen;
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("sidebarOpen");
       return stored === null ? false : stored === "true";
@@ -36,23 +49,31 @@ export default function Sidebar({
     return false;
   });
 
-  // Search term and recent searches
+  // Use external recent searches or fallback to localStorage
+  const recent =
+    externalRecentSearches.length > 0
+      ? externalRecentSearches
+      : (() => {
+          if (typeof window !== "undefined") {
+            const stored = localStorage.getItem("recentSearches");
+            return stored ? JSON.parse(stored) : [];
+          }
+          return [];
+        })();
+
+  // Search term and loading state
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [recent, setRecent] = useState<string[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("recentSearches");
-      return stored ? JSON.parse(stored) : [];
-    }
-    return [];
-  });
 
+  // Sync sidebar state with external handler
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("sidebarOpen", open.toString());
-      localStorage.setItem("recentSearches", JSON.stringify(recent));
+    if (onSidebarToggle && externalSidebarOpen !== open) {
+      onSidebarToggle(open);
     }
-  }, [open, recent]);
+    if (typeof window !== "undefined" && externalSidebarOpen === undefined) {
+      localStorage.setItem("sidebarOpen", open.toString());
+    }
+  }, [open, onSidebarToggle, externalSidebarOpen]);
 
   // Handle search
   async function handleSearch(e: React.FormEvent) {
@@ -62,11 +83,16 @@ export default function Sidebar({
 
     setIsLoading(true);
 
-    // Add to recent searches
-    setRecent((prev) => {
-      const updated = [searchTerm, ...prev.filter((t) => t !== searchTerm)].slice(0, 8);
-      return updated;
-    });
+    // Add to recent searches through external handler or fallback
+    if (onRecentSearchesChange) {
+      const updated = [searchTerm, ...externalRecentSearches.filter((t: string) => t !== searchTerm)].slice(0, 8);
+      onRecentSearchesChange(updated);
+    } else if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("recentSearches");
+      const current = stored ? JSON.parse(stored) : [];
+      const updated = [searchTerm, ...current.filter((t: string) => t !== searchTerm)].slice(0, 8);
+      localStorage.setItem("recentSearches", JSON.stringify(updated));
+    }
 
     // Call Datamuse API and trigger word web
     try {
@@ -91,7 +117,16 @@ export default function Sidebar({
     e.stopPropagation(); // Prevent triggering the search when clicking delete
     const combinedLoading = isLoading || externalLoading;
     if (combinedLoading) return;
-    setRecent((prev) => prev.filter((term) => term !== termToRemove));
+
+    if (onRecentSearchesChange) {
+      const updated = externalRecentSearches.filter((term: string) => term !== termToRemove);
+      onRecentSearchesChange(updated);
+    } else if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("recentSearches");
+      const current = stored ? JSON.parse(stored) : [];
+      const updated = current.filter((term: string) => term !== termToRemove);
+      localStorage.setItem("recentSearches", JSON.stringify(updated));
+    }
   }
 
   // Handle clicking a recent search term
@@ -179,7 +214,7 @@ export default function Sidebar({
                 Recent searches:
               </div>
               <div className="flex flex-wrap gap-1">
-                {recent.map((term) => (
+                {recent.map((term: string) => (
                   <div
                     key={term}
                     className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity ${
@@ -254,13 +289,19 @@ export default function Sidebar({
 
           {/* Action buttons */}
           <div className="flex flex-col gap-2 mt-3">
-            <button className="btn btn-primary btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
+            <button
+              className="btn btn-primary btn-wide btn-sm text-[14px]"
+              disabled={isLoading || externalLoading}
+              onClick={onSave}>
               Save wordweb
             </button>
             <button className="btn btn-accent btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
               Load wordweb
             </button>
-            <button className="btn btn-error btn-wide btn-sm text-[14px]" disabled={isLoading || externalLoading}>
+            <button
+              className="btn btn-error btn-wide btn-sm text-[14px]"
+              disabled={isLoading || externalLoading}
+              onClick={onClear}>
               Clear
             </button>
           </div>

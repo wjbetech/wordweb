@@ -7,6 +7,8 @@ import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
 import { searchDatamuse } from "../api/datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
+import { usePersistence } from "../hooks/usePersistence";
+import { loadUserPreferences } from "../utils/localStorage";
 
 const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
@@ -20,14 +22,42 @@ type WordWebFlowProps = {
 export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
-  const [lineStyle, setLineStyle] = useState<LineStyle>("smoothstep");
+  const [lineStyle, setLineStyle] = useState<LineStyle>(() => {
+    const savedPrefs = loadUserPreferences();
+    return savedPrefs?.lineStyle || "smoothstep";
+  });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isUpdatingLineStyle, setIsUpdatingLineStyle] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [centerWord, setCenterWord] = useState<string>("");
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    const savedPrefs = loadUserPreferences();
+    return savedPrefs?.sidebarOpen || false;
+  });
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    const savedPrefs = loadUserPreferences();
+    return savedPrefs?.recentSearches || [];
+  });
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
+
+  // Get current viewport for persistence
+  const viewport = reactFlow.getViewport();
+
+  // Initialize persistence hook
+  const { saveCurrentState, loadSavedState, clearSavedState } = usePersistence({
+    nodes,
+    edges,
+    expandedNodes,
+    viewport,
+    centerWord,
+    isDark,
+    lineStyle,
+    sidebarOpen,
+    recentSearches
+  });
 
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
 
@@ -89,6 +119,31 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  // Load saved state on component mount
+  useEffect(() => {
+    const savedState = loadSavedState();
+    const savedPrefs = loadUserPreferences();
+
+    if (savedState && savedState.nodes.length > 0) {
+      setNodes(savedState.nodes);
+      setEdges(savedState.edges);
+      setExpandedNodes(new Set(savedState.expandedNodes));
+      if (savedState.centerWord) {
+        setCenterWord(savedState.centerWord);
+      }
+
+      // Restore viewport after a small delay to ensure ReactFlow is ready
+      setTimeout(() => {
+        reactFlow.setViewport(savedState.viewport);
+      }, 100);
+    }
+
+    // Apply theme if different from current (preferences already loaded in state initializers)
+    if (savedPrefs && (savedPrefs.theme === "dark") !== isDark) {
+      onThemeChange(savedPrefs.theme === "dark");
+    }
+  }, [loadSavedState, reactFlow, isDark, onThemeChange]);
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
@@ -207,9 +262,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   // Handler to create a word web
   const createWordWeb = useCallback(
-    async (centerWord: string, related: string[]) => {
+    async (searchWord: string, related: string[]) => {
       setIsInitialLoading(true);
       setError(null);
+      setCenterWord(searchWord);
 
       // Clear existing nodes and edges immediately
       setNodes([]);
@@ -228,11 +284,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
         // Center node
-        const centerId = `center-${centerWord}`;
+        const centerId = `center-${searchWord}`;
         const centerNode: Node = {
           id: centerId,
           data: {
-            label: centerWord,
+            label: searchWord,
             depth: 0,
             color: colors[0],
             isExpanded: false
@@ -253,7 +309,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
             const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
             const node = {
-              id: `related-${centerWord}-${word}`,
+              id: `related-${searchWord}-${word}`,
               data: {
                 label: word,
                 depth,
@@ -436,6 +492,21 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     [nodes, expandedNodes, loadingNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow]
   );
 
+  // Manual save/load/clear functions
+  const handleSaveWordweb = useCallback(() => {
+    saveCurrentState();
+    // You could show a toast notification here
+  }, [saveCurrentState]);
+
+  const handleClearWordweb = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setExpandedNodes(new Set());
+    setCenterWord("");
+    clearSavedState();
+    reactFlow.fitView();
+  }, [clearSavedState, reactFlow]);
+
   const nodeTypes = { colored: ColoredNode };
 
   return (
@@ -497,6 +568,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onThemeChange={onThemeChange}
         isLoading={isInitialLoading}
         error={error}
+        onSave={handleSaveWordweb}
+        onClear={handleClearWordweb}
+        recentSearches={recentSearches}
+        onRecentSearchesChange={setRecentSearches}
+        sidebarOpen={sidebarOpen}
+        onSidebarToggle={setSidebarOpen}
       />
     </>
   );

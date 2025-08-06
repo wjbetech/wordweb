@@ -227,10 +227,32 @@
 
 ## 🎨 Design Philosophy
 
-**Simplicity**: Complex functionality should feel simple
-**Clarity**: Visual hierarchy guides user attention
-**Responsiveness**: Immediate feedback to all interactions
-**Beauty**: Aesthetic design enhances usability
+**Simplicity**: Complex functionality should feel simple **Clarity**: Visual hierarchy guides user attention **Responsiveness**: Immediate feedback to all interactions **Beauty**: Aesthetic design enhances usability
+
+## 🛠️ Edge Case Work
+
+As we build wordweb., we need to handle various edge cases that could impact user experience or system stability:
+
+### Input Validation & Limits
+
+- [ ] **Handle Long Inputs**: Decide on maximum input length for search terms and implement proper validation
+  - Consider UI feedback for character limits
+  - Handle truncation vs. rejection of overly long inputs
+  - Ensure API compatibility with input length restrictions
+
+### Data & Performance Edge Cases
+
+- [ ] **Empty API Responses**: Handle cases where Datamuse returns no results
+- [ ] **Network Failures**: Implement retry logic and offline state handling
+- [ ] **Memory Constraints**: Prevent infinite node expansion that could crash the browser
+- [ ] **Malformed API Data**: Validate and sanitize all API responses
+
+### User Interaction Edge Cases
+
+- [ ] **Rapid Clicking**: Prevent double-clicks and rapid node expansion requests
+- [ ] **Invalid Search Terms**: Handle special characters, emojis, and non-standard input
+- [ ] **Browser Compatibility**: Ensure graceful degradation across different browsers
+- [ ] **Mobile Touch Events**: Handle touch conflicts with drag/zoom operations
 
 ## 🧭 Decision Framework
 
