@@ -88,7 +88,7 @@ export default function Sidebar({
       <div
         className={`fixed top-4 ${
           open ? "left-3" : "left-0"
-        } h-[70vh] w-64 rounded-xl bg-zinc-800 shadow-xl p-4 z-20 transform transition-transform duration-300  ${
+        } h-[70vh] w-64 rounded-xl bg-zinc-800 shadow-xl p-3 z-20 transform transition-transform duration-300  ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
         style={{
@@ -98,9 +98,9 @@ export default function Sidebar({
         }}
       >
         {/* Header controls */}
-        <div className="absolute top-4 left-0 right-4 flex justify-between items-center px-4">
+        <div className="absolute top-3 left-0 right-3 flex justify-between items-center px-3">
           <button
-            className="px-2 py-2 text-white rounded-lg transition-colors cursor-pointer z-50 text-3xl bg-transparent hover:bg-[#4c5c68] focus:outline-none "
+            className="px-2 py-1 text-white rounded-lg transition-colors cursor-pointer z-50 text-2xl bg-transparent hover:bg-[#4c5c68] focus:outline-none "
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
             aria-label="Close sidebar"
@@ -112,18 +112,38 @@ export default function Sidebar({
             onToggle={() => onThemeChange?.(!isDark)}
           />
         </div>
-        <div className="mt-16 flex flex-col gap-4">
-          <h2 className="text-lg font-bold text-gray-100">wordweb. Controls</h2>
+        <div className="mt-12 flex flex-col gap-3">
+          <h2 className="text-base font-bold text-gray-100">
+            wordweb. Controls
+          </h2>
           {/* Search input */}
           <form onSubmit={handleSearch} className="flex gap-2">
-            <input
-              type="text"
-              className="flex-1 min-w-0 rounded px-2 py-1 bg-zinc-700 text-white placeholder-gray-400 focus:outline-none "
-              placeholder="Search a word..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <button type="submit" className="btn btn-soft btn-success">
+            <label className="input input-sm flex-1 flex items-center gap-2">
+              <svg
+                className="h-[1em] opacity-50"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+              >
+                <g
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  strokeWidth="2.5"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <path d="m21 21-4.3-4.3"></path>
+                </g>
+              </svg>
+              <input
+                type="search"
+                className="grow"
+                placeholder="Search a word..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </label>
+            <button type="submit" className="btn btn-soft btn-success btn-sm">
               Go
             </button>
           </form>
@@ -146,7 +166,7 @@ export default function Sidebar({
                     </span>
                     <button
                       onClick={(e) => handleRemoveRecentSearch(term, e)}
-                      className="text-gray-400 hover:text-red-400 text-lg leading-none cursor-pointer transition-colors duration-200 font-bold"
+                      className="text-gray-400 hover:text-red-400 text-sm leading-none cursor-pointer transition-colors duration-200 font-bold"
                       aria-label={`Remove ${term} from recent searches`}
                       title={`Remove ${term}`}
                     >
@@ -159,14 +179,14 @@ export default function Sidebar({
           )}
 
           {/* Line style selector */}
-          <div className="mt-6">
-            <label className="block text-sm text-gray-300 mb-2 ">
+          <div className="mt-4">
+            <label className="block text-xs text-gray-300 mb-2">
               Line Style
             </label>
             <select
               value={currentLineStyle}
               onChange={(e) => onLineStyleChange?.(e.target.value as LineStyle)}
-              className="w-full bg-zinc-700 text-gray-200 rounded px-3 py-2 cursor-pointer hover:bg-zinc-600 "
+              className="w-full bg-zinc-700 text-gray-200 rounded px-2 py-1 cursor-pointer hover:bg-zinc-600 text-sm"
             >
               <option value="default">Default</option>
               <option value="straight">Straight</option>
@@ -177,14 +197,16 @@ export default function Sidebar({
           </div>
 
           {/* Action buttons */}
-          <div className="flex flex-col gap-2 mt-4">
-            <button className="btn btn-soft btn-success btn-wide">
+          <div className="flex flex-col gap-2 mt-3">
+            <button className="btn btn-soft btn-success btn-wide btn-sm">
               Save wordweb
             </button>
-            <button className="btn btn-soft btn-primary btn-wide">
+            <button className="btn btn-soft btn-info btn-wide btn-sm">
               Load wordweb
             </button>
-            <button className="btn btn-soft btn-error btn-wide">Clear</button>
+            <button className="btn btn-soft btn-error btn-wide btn-sm">
+              Clear
+            </button>
           </div>
         </div>
       </div>
