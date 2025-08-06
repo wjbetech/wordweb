@@ -1,5 +1,10 @@
 import { useState, useCallback } from "react";
-import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  useReactFlow,
+  BackgroundVariant,
+} from "reactflow";
 import ColoredNode from "./ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import Sidebar from "./Sidebar";
@@ -28,21 +33,33 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const canvasBg = isDark ? "bg-gray-800" : "bg-white";
 
   // Helper: check if a position is too close to any node
-  const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 140) => {
-    return nodes.some((n) => {
-      const dx = n.position.x - x;
-      const dy = n.position.y - y;
-      return Math.sqrt(dx * dx + dy * dy) < minDist;
-    });
-  }, []);
+  const isOverlapping = useCallback(
+    (x: number, y: number, nodes: Node[], minDist = 140) => {
+      return nodes.some((n) => {
+        const dx = n.position.x - x;
+        const dy = n.position.y - y;
+        return Math.sqrt(dx * dx + dy * dy) < minDist;
+      });
+    },
+    []
+  );
 
   // Helper: Find a non-overlapping position using spiral placement if random fails
   const findNonOverlappingPosition = useCallback(
-    (startX: number, startY: number, baseRadius: number, depth: number, spreadStep: number, placed: Node[]) => {
+    (
+      startX: number,
+      startY: number,
+      baseRadius: number,
+      depth: number,
+      spreadStep: number,
+      placed: Node[]
+    ) => {
       const minDist = 140;
 
       // Calculate the average direction of existing nodes relative to the start point
-      const existingNodes = placed.filter((n) => n.position.x !== startX || n.position.y !== startY);
+      const existingNodes = placed.filter(
+        (n) => n.position.x !== startX || n.position.y !== startY
+      );
       let avgAngle = Math.PI / 2; // Default to growing upward if no existing nodes
 
       if (existingNodes.length > 0) {
@@ -51,7 +68,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           const dy = n.position.y - startY;
           return Math.atan2(dy, dx);
         });
-        avgAngle = angles.reduce((sum, angle) => sum + angle, 0) / angles.length;
+        avgAngle =
+          angles.reduce((sum, angle) => sum + angle, 0) / angles.length;
         // Add PI to point in the opposite direction of existing nodes
         avgAngle += Math.PI;
       }
@@ -77,7 +95,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       // If arc placement fails, try wider arc
       const widerArcRange = Math.PI; // 180-degree arc
       for (let i = 0; i < numTries; i++) {
-        const angleOffset = widerArcRange / 2 - (widerArcRange * i) / (numTries - 1);
+        const angleOffset =
+          widerArcRange / 2 - (widerArcRange * i) / (numTries - 1);
         const angle = avgAngle + angleOffset;
         const radius = baseRadius + (depth - 1) * spreadStep;
 
@@ -93,7 +112,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       const fallbackRadius = baseRadius + (depth - 1) * spreadStep + 200;
       return {
         x: startX + fallbackRadius * Math.cos(avgAngle),
-        y: startY + fallbackRadius * Math.sin(avgAngle)
+        y: startY + fallbackRadius * Math.sin(avgAngle),
       };
     },
     [isOverlapping]
@@ -108,7 +127,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         id: centerId,
         data: { label: centerWord, depth: 0, color: colors[0] },
         position: { x: center.x, y: center.y },
-        type: "colored"
+        type: "colored",
       };
 
       setNodes([centerNode]);
@@ -116,7 +135,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       reactFlow.setViewport({
         x: 0,
         y: 0,
-        zoom: 1
+        zoom: 1,
       });
 
       // After 0.5s, add related nodes around the center
@@ -126,12 +145,19 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         const depth = 1;
         const placed: Node[] = [centerNode];
         const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
-          const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+          const position = findNonOverlappingPosition(
+            center.x,
+            center.y,
+            baseRadius,
+            depth,
+            spreadStep,
+            placed
+          );
           const node = {
             id: `related-${centerWord}-${word}`,
             data: { label: word, depth, color: colors[depth % colors.length] },
             position,
-            type: "colored" as const
+            type: "colored" as const,
           };
           placed.push(node);
           return node;
@@ -143,14 +169,21 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           target: n.id,
           style: {
             stroke: edgeColor,
-            strokeWidth: 1.5
+            strokeWidth: 1.5,
           },
           type: lineStyle,
-          animated: false
+          animated: false,
         }));
         setEdges(initialEdges);
-        // Refocus on new nodes
-        reactFlow.fitView({ nodes: relatedNodes, duration: 500 });
+
+        // Auto-zoom to fit all nodes (center + related) with smooth animation
+        setTimeout(() => {
+          reactFlow.fitView({
+            nodes: [centerNode, ...relatedNodes],
+            duration: 800,
+            padding: 0.15, // Add 15% padding around the nodes for better visibility
+          });
+        }, 100); // Small delay to ensure nodes are rendered
       }, 500);
     },
     [reactFlow, colors, findNonOverlappingPosition, lineStyle, edgeColor]
@@ -181,7 +214,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           id: `expanded-${node.id}-${word}`,
           data: { label: word, depth, color: colors[depth % colors.length] },
           position,
-          type: "colored" as const
+          type: "colored" as const,
         };
         placed.push(n);
         return n;
@@ -193,10 +226,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         target: n.id,
         style: {
           stroke: edgeColor,
-          strokeWidth: 1.5
+          strokeWidth: 1.5,
         },
         type: lineStyle,
-        animated: false
+        animated: false,
       }));
       setNodes((prev) => [...prev, ...newNodes]);
       setEdges((prev) => [...prev, ...newEdges]);
@@ -211,8 +244,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     <>
       <div
         className="fixed inset-0 flex items-center justify-center overflow-hidden pointer-events-none"
-        style={{ zIndex: 1 }}>
-        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#e5e7eb" : "#374151" }}>
+        style={{ zIndex: 1 }}
+      >
+        <div
+          className="text-5xl font-bold opacity-10 select-none"
+          style={{ color: isDark ? "#e5e7eb" : "#374151" }}
+        >
           wordweb.
         </div>
       </div>
@@ -239,11 +276,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         defaultEdgeOptions={{
           style: { stroke: edgeColor, strokeWidth: 1.5 },
           type: lineStyle,
-          animated: false
+          animated: false,
         }}
         edgesFocusable={true}
         elementsSelectable={true}
-        nodesConnectable={false}>
+        nodesConnectable={false}
+      >
         <Background
           color={isDark ? "#374151" : "#e5e7eb"}
           variant={BackgroundVariant.Lines}
