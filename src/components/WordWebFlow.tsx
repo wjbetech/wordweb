@@ -1,9 +1,10 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from "reactflow";
 import ColoredNode from "./ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import Sidebar from "./Sidebar";
 import LoadingOverlay from "./LoadingOverlay";
+import Toast from "./Toast";
 import { searchDatamuse } from "../api/datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
 
@@ -23,6 +24,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
   const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isUpdatingLineStyle, setIsUpdatingLineStyle] = useState(false);
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -30,6 +32,54 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   // Set ReactFlow canvas background color based on theme
   const canvasBg = isDark ? "bg-gray-800" : "bg-white";
+
+  // Function to update line style for all existing edges
+  const updateLineStyle = useCallback(
+    async (newLineStyle: LineStyle) => {
+      if (edges.length === 0) {
+        // If no edges exist, just update the line style
+        setLineStyle(newLineStyle);
+        return;
+      }
+
+      setIsUpdatingLineStyle(true);
+
+      // Add a small delay for visual feedback
+      await new Promise((resolve) => setTimeout(resolve, 150));
+
+      setLineStyle(newLineStyle);
+
+      // Update all existing edges with the new line style
+      setEdges((prevEdges) =>
+        prevEdges.map((edge) => ({
+          ...edge,
+          type: newLineStyle,
+          style: {
+            ...edge.style,
+            stroke: edgeColor,
+            strokeWidth: 1.5
+          }
+        }))
+      );
+
+      setIsUpdatingLineStyle(false);
+    },
+    [edges.length, edgeColor]
+  );
+
+  // Update edge colors when theme changes
+  useEffect(() => {
+    setEdges((prevEdges) =>
+      prevEdges.map((edge) => ({
+        ...edge,
+        style: {
+          ...edge.style,
+          stroke: edgeColor,
+          strokeWidth: 1.5
+        }
+      }))
+    );
+  }, [edgeColor]);
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
@@ -383,6 +433,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
       {isInitialLoading && <LoadingOverlay isDark={isDark} message="Generating word web..." />}
 
+      <Toast message="Line style updated!" isVisible={isUpdatingLineStyle} isDark={isDark} />
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -422,7 +474,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       </ReactFlow>
       <Sidebar
         onSearch={createWordWeb}
-        onLineStyleChange={setLineStyle}
+        onLineStyleChange={updateLineStyle}
         currentLineStyle={lineStyle}
         isDark={isDark}
         onThemeChange={onThemeChange}
