@@ -123,11 +123,7 @@ export default function Sidebar({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <button
-              type="submit"
-              className="shrink-0 bg-green-600 hover:bg-green-500/90 text-white px-3 py-1 rounded cursor-pointer "
-              style={{ maxWidth: "4.5rem" }}
-            >
+            <button type="submit" className="btn btn-soft btn-success">
               Go
             </button>
           </form>
@@ -180,17 +176,15 @@ export default function Sidebar({
             </select>
           </div>
 
-          {/* Placeholder action buttons */}
+          {/* Action buttons */}
           <div className="flex flex-col gap-2 mt-4">
-            <button className="bg-teal-700 hover:bg-teal-600/90 text-white rounded px-3 py-1 cursor-pointer">
+            <button className="btn btn-soft btn-success btn-wide">
               Save wordweb
             </button>
-            <button className="bg-cyan-600 hover:bg-cyan-500/90 text-white rounded px-3 py-1 cursor-pointer">
+            <button className="btn btn-soft btn-primary btn-wide">
               Load wordweb
             </button>
-            <button className="bg-red-600 hover:bg-red-500/90 text-white rounded px-3 py-1 cursor-pointer">
-              Clear
-            </button>
+            <button className="btn btn-soft btn-error btn-wide">Clear</button>
           </div>
         </div>
       </div>
