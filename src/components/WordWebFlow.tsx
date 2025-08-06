@@ -19,6 +19,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [lineStyle, setLineStyle] = useState<LineStyle>("smoothstep");
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -149,13 +150,19 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       const centerId = `center-${centerWord}`;
       const centerNode: Node = {
         id: centerId,
-        data: { label: centerWord, depth: 0, color: colors[0] },
+        data: {
+          label: centerWord,
+          depth: 0,
+          color: colors[0],
+          isExpanded: false
+        },
         position: { x: center.x, y: center.y },
         type: "colored"
       };
 
       setNodes([centerNode]);
       setEdges([]);
+      setExpandedNodes(new Set());
       reactFlow.setViewport({
         x: 0,
         y: 0,
@@ -172,7 +179,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
           const node = {
             id: `related-${centerWord}-${word}`,
-            data: { label: word, depth, color: colors[depth % colors.length] },
+            data: {
+              label: word,
+              depth,
+              color: colors[depth % colors.length],
+              isExpanded: false
+            },
             position,
             type: "colored" as const
           };
@@ -206,54 +218,108 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     [reactFlow, colors, findNonOverlappingPosition, lineStyle, edgeColor]
   );
 
-  // Node click handler to expand web
-  const onNodeClick: NodeMouseHandler = async (_event, node) => {
-    // Only expand if not the center node and not already expanded
-    if (node.id.startsWith("related-") || node.id.startsWith("expanded-")) {
-      if (nodes.some((n) => n.id.startsWith(`expanded-${node.id}-`))) return;
-      const results = await searchDatamuse(node.data.label);
-      const related = results.slice(0, 4).map((w: { word: string }) => w.word);
-      const parentDepth = node.data.depth ?? 1;
-      const depth = parentDepth + 1;
-      const baseRadius = 160; // Increased for more spread between layers
-      const spreadStep = 120; // Increased to match the larger spacing
-      const placed: Node[] = [node, ...nodes];
-      const newNodes: Node[] = related.map((word) => {
-        const position = findNonOverlappingPosition(
-          node.position.x,
-          node.position.y,
-          baseRadius,
-          depth,
-          spreadStep,
-          placed
-        );
-        const n = {
-          id: `expanded-${node.id}-${word}`,
-          data: { label: word, depth, color: colors[depth % colors.length] },
-          position,
-          type: "colored" as const
-        };
-        placed.push(n);
-        return n;
-      });
-      // Add edges from parent node to each new node
-      const newEdges = newNodes.map((n) => ({
-        id: `e-${node.id}-${n.id}`,
-        source: node.id,
-        target: n.id,
-        style: {
-          stroke: edgeColor,
-          strokeWidth: 1.5
-        },
-        type: lineStyle,
-        animated: false
-      }));
-      setNodes((prev) => [...prev, ...newNodes]);
-      setEdges((prev) => [...prev, ...newEdges]);
-      // Refocus on new nodes
-      reactFlow.fitView({ nodes: newNodes, duration: 500 });
-    }
-  };
+  // Node click handler to expand/collapse web
+  const onNodeClick: NodeMouseHandler = useCallback(
+    async (_event, node) => {
+      // Only process clicks on related or expanded nodes (not center node)
+      if (node.id.startsWith("related-") || node.id.startsWith("expanded-")) {
+        const isCurrentlyExpanded = expandedNodes.has(node.id);
+
+        if (isCurrentlyExpanded) {
+          // Collapse - remove all child nodes and edges recursively
+          const getAllDescendantIds = (nodeId: string): Set<string> => {
+            const descendants = new Set<string>();
+            const directChildren = nodes.filter((n) => n.id.startsWith(`expanded-${nodeId}-`));
+
+            for (const child of directChildren) {
+              descendants.add(child.id);
+              const childDescendants = getAllDescendantIds(child.id);
+              childDescendants.forEach((id) => descendants.add(id));
+            }
+            return descendants;
+          };
+
+          const allDescendantIds = getAllDescendantIds(node.id);
+
+          // Remove nodes and edges
+          setNodes((prev) => prev.filter((n) => !allDescendantIds.has(n.id)));
+          setEdges((prev) => prev.filter((e) => !allDescendantIds.has(e.source) && !allDescendantIds.has(e.target)));
+
+          // Update expanded state for this node and all descendants
+          setExpandedNodes((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(node.id);
+            allDescendantIds.forEach((id) => newSet.delete(id));
+            return newSet;
+          });
+
+          // Update the node's visual state
+          setNodes((prev) =>
+            prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: false } } : n))
+          );
+        } else {
+          // Expand - add child nodes
+          const results = await searchDatamuse(node.data.label);
+          const related = results.slice(0, 4).map((w: { word: string }) => w.word);
+          const parentDepth = node.data.depth ?? 1;
+          const depth = parentDepth + 1;
+          const baseRadius = 160;
+          const spreadStep = 120;
+          const placed: Node[] = [node, ...nodes];
+
+          const newNodes: Node[] = related.map((word) => {
+            const position = findNonOverlappingPosition(
+              node.position.x,
+              node.position.y,
+              baseRadius,
+              depth,
+              spreadStep,
+              placed
+            );
+            const n = {
+              id: `expanded-${node.id}-${word}`,
+              data: {
+                label: word,
+                depth,
+                color: colors[depth % colors.length],
+                isExpanded: false
+              },
+              position,
+              type: "colored" as const
+            };
+            placed.push(n);
+            return n;
+          });
+
+          // Add edges from parent node to each new node
+          const newEdges = newNodes.map((n) => ({
+            id: `e-${node.id}-${n.id}`,
+            source: node.id,
+            target: n.id,
+            style: {
+              stroke: edgeColor,
+              strokeWidth: 1.5
+            },
+            type: lineStyle,
+            animated: false
+          }));
+
+          setNodes((prev) => [...prev, ...newNodes]);
+          setEdges((prev) => [...prev, ...newEdges]);
+
+          // Mark this node as expanded
+          setExpandedNodes((prev) => new Set([...prev, node.id]));
+
+          // Update the node's visual state
+          setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: true } } : n)));
+
+          // Refocus on new nodes
+          reactFlow.fitView({ nodes: newNodes, duration: 500 });
+        }
+      }
+    },
+    [nodes, expandedNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow]
+  );
 
   const nodeTypes = { colored: ColoredNode };
 
@@ -262,7 +328,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       <div
         className="fixed inset-0 flex items-center justify-center overflow-hidden pointer-events-none"
         style={{ zIndex: 1 }}>
-        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#e5e7eb" : "#374151" }}>
+        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#ece2c7" : "#374151" }}>
           wordweb.
         </div>
       </div>
@@ -274,7 +340,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         minZoom={0.5}
         maxZoom={2}
         className={canvasBg + " w-full h-full"}
-        style={{ background: isDark ? "#1f2937" : "#ffffff" }}
+        style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
         onNodeClick={onNodeClick}
         onWheel={(event) => {
           if (!event.ctrlKey) {
@@ -295,7 +361,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         elementsSelectable={true}
         nodesConnectable={false}>
         <Background
-          color={isDark ? "#374151" : "#e5e7eb"}
+          color={isDark ? "#374151" : "#ddd"}
           variant={BackgroundVariant.Lines}
           gap={20}
           offset={1}

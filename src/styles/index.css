@@ -6,7 +6,7 @@
 @layer base {
   :root,
   [data-theme="light"] {
-    --bg-color: #ffffff;
+    --bg-color: #fff4de;
     --text-color: #213547;
     --bg-color-inv: #242424;
     --text-color-inv: rgba(255, 255, 255, 0.87);

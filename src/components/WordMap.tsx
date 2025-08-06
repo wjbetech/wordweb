@@ -8,7 +8,7 @@ type WordMapProps = {
 
 export default function WordMap({ isDark, onThemeChange }: WordMapProps) {
   return (
-    <div className="relative w-screen h-screen bg-[#fdf6e3] overflow-hidden">
+    <div className="relative w-screen h-screen bg-[#ece2c7] overflow-hidden">
       {/* Centered, unclickable, unselectable wordweb. icon */}
       <div
         className="pointer-events-none select-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-0"

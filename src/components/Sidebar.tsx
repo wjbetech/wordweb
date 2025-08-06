@@ -108,7 +108,7 @@ export default function Sidebar({
         <div className="mt-12 flex flex-col gap-3">
           <h2 className={`text-base font-bold ${isDark ? "text-gray-100" : "text-slate-800"}`}>wordweb. Controls</h2>
           {/* Search input */}
-          <form onSubmit={handleSearch} className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2 mb-2">
             <label className="input input-sm flex-1 flex items-center gap-2">
               <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                 <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
@@ -118,10 +118,11 @@ export default function Sidebar({
               </svg>
               <input
                 type="search"
-                className="grow"
+                className="grow text-sm"
                 placeholder="Search a word..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ fontSize: "14px" }}
               />
             </label>
             <button type="submit" className="btn btn-success btn-sm text-[14px]">
@@ -132,7 +133,9 @@ export default function Sidebar({
           {/* Recent searches */}
           {recent.length > 0 && (
             <div>
-              <div className={`text-xs mb-2 ${isDark ? "text-gray-400" : "text-gray-600"}`}>Recent searches:</div>
+              <div className={`text-sm mb-2 font-semibold ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                Recent searches:
+              </div>
               <div className="flex flex-wrap gap-1">
                 {recent.map((term) => (
                   <div
@@ -162,9 +165,11 @@ export default function Sidebar({
 
           {/* Line style selector */}
           <div className="mt-4">
-            <label className={`block text-xs mb-2 ${isDark ? "text-gray-300" : "text-gray-700"}`}>Line Style</label>
+            <label className={`block text-sm mb-2 font-semibold ${isDark ? "text-gray-300" : "text-gray-700"}`}>
+              Line Style
+            </label>
             <div className="dropdown dropdown-bottom w-full">
-              <div tabIndex={0} role="button" className="btn btn-soft btn-sm w-full justify-between">
+              <div tabIndex={0} role="button" className="btn btn-soft btn-sm w-full justify-between text-sm">
                 {currentLineStyle === "smoothstep"
                   ? "Smooth Step"
                   : currentLineStyle === "default"
@@ -182,7 +187,7 @@ export default function Sidebar({
               </div>
               <ul
                 tabIndex={0}
-                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow-lg mt-1">
+                className="dropdown-content menu bg-base-100 rounded-box z-[1] w-full p-2 shadow-lg mt-1 text-sm font-semibold">
                 <li>
                   <a onClick={() => onLineStyleChange?.("default")}>Default</a>
                 </li>

@@ -4,6 +4,8 @@ import { Handle, Position, type NodeProps } from "reactflow";
 const ColoredNode = memo(({ data }: NodeProps) => {
   const bg = data?.color?.bg || "#fff";
   const color = data?.color?.text || "#222";
+  const isExpanded = data?.isExpanded || false;
+
   return (
     <>
       <Handle
@@ -18,8 +20,8 @@ const ColoredNode = memo(({ data }: NodeProps) => {
       />
       <div
         style={{
-          background: bg,
-          color,
+          background: isExpanded ? "#555" : bg,
+          color: isExpanded ? "#fff" : color,
           borderRadius: 12,
           padding: "10px 18px",
           fontWeight: 700,
@@ -29,7 +31,13 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           minWidth: 60,
           textAlign: "center",
           userSelect: "none",
-          cursor: "pointer"
+          cursor: "pointer",
+          opacity: isExpanded ? 0.6 : 1,
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "6px"
         }}>
         {data.label}
       </div>
