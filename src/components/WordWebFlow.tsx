@@ -55,15 +55,19 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     word: string;
     score?: number;
     tags?: string[];
-    position: { x: number; y: number };
+    nodeId: string;
     isVisible: boolean;
     isPinned: boolean;
   }>({
     word: "",
-    position: { x: 0, y: 0 },
+    nodeId: "",
     isVisible: false,
     isPinned: false
   });
+
+  // Force tooltip re-renders when viewport changes
+  const [tooltipUpdate, setTooltipUpdate] = useState(0);
+
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -178,6 +182,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }));
     }
   }, [tooltipsEnabled, tooltipData.isVisible]);
+
+  // Handle viewport changes to update tooltip positions
+  const handleViewportChange = useCallback(() => {
+    if (tooltipData.isVisible && tooltipData.isPinned) {
+      setTooltipUpdate((prev) => prev + 1);
+    }
+  }, [tooltipData.isVisible, tooltipData.isPinned]);
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
@@ -605,6 +616,26 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     setTooltipsEnabled(enabled);
   }, []);
 
+  // Helper: calculate tooltip screen position from node ID
+  const getTooltipPosition = useCallback(
+    (nodeId: string): { x: number; y: number } => {
+      const node = nodes.find((n) => n.id === nodeId);
+      if (!node) return { x: 0, y: 0 };
+
+      // Get the current viewport (tooltipUpdate forces recalculation on viewport changes)
+      const viewport = reactFlow.getViewport();
+
+      // Calculate screen position from node position and viewport
+      // Position tooltip to the right and slightly above the node
+      const screenX = node.position.x * viewport.zoom + viewport.x + 150; // offset to right of node
+      const screenY = node.position.y * viewport.zoom + viewport.y - 10; // slightly above node
+
+      return { x: screenX, y: screenY };
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [nodes, reactFlow, tooltipUpdate]
+  );
+
   const nodeTypes = { colored: ColoredNode };
 
   return (
@@ -631,6 +662,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         className={canvasBg + " w-full h-full"}
         style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
         onNodeClick={onNodeClick}
+        onMove={handleViewportChange}
         onWheel={(event) => {
           if (!event.ctrlKey) {
             // Allow regular scroll only when Ctrl is pressed
@@ -649,18 +681,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         edgesFocusable={true}
         elementsSelectable={true}
         nodesConnectable={false}
-        onNodeMouseEnter={(event, node) => {
+        onNodeMouseEnter={(_, node) => {
           // Only show tooltip on hover if tooltips enabled and not pinned
           if (tooltipsEnabled && !tooltipData.isPinned) {
-            const rect = event.currentTarget.getBoundingClientRect();
             setTooltipData({
               word: node.data.label,
               score: node.data.score,
               tags: node.data.tags,
-              position: {
-                x: event.clientX || rect.left + rect.width / 2,
-                y: event.clientY || rect.top
-              },
+              nodeId: node.id,
               isVisible: true,
               isPinned: false
             });
@@ -677,7 +705,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           if (!tooltipsEnabled) return;
 
           event.preventDefault();
-          const rect = event.currentTarget.getBoundingClientRect();
 
           // If clicking the same node that's already pinned, unpin it
           if (tooltipData.isPinned && tooltipData.word === node.data.label) {
@@ -688,10 +715,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               word: node.data.label,
               score: node.data.score,
               tags: node.data.tags,
-              position: {
-                x: event.clientX || rect.left + rect.width / 2,
-                y: event.clientY || rect.top
-              },
+              nodeId: node.id,
               isVisible: true,
               isPinned: true
             });
@@ -755,7 +779,7 @@ Try expanding a different word or start a new word web to continue discovering c
       <NodeTooltip
         word={tooltipData.word}
         score={tooltipData.score}
-        position={tooltipData.position}
+        position={getTooltipPosition(tooltipData.nodeId)}
         isVisible={tooltipsEnabled && tooltipData.isVisible}
         isPinned={tooltipData.isPinned}
         isDark={isDark}

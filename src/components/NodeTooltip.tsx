@@ -130,14 +130,20 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
         {!isExpanded ? (
           <div className="flex items-center justify-between">
             <span className="text-sm opacity-70">Definition</span>
-            <button
-              onClick={handleExpand}
-              className={`
-                text-sm font-medium cursor-pointer hover:underline
-                ${isDark ? "text-blue-400" : "text-blue-600"}
-              `}>
-              show <span className="opacity-60">...</span>
-            </button>
+            {isPinned ? (
+              <button
+                onClick={handleExpand}
+                className={`
+                  text-sm font-medium cursor-pointer hover:underline
+                  ${isDark ? "text-blue-400" : "text-blue-600"}
+                `}>
+                show <span className="opacity-60">...</span>
+              </button>
+            ) : (
+              <span className="text-sm opacity-40 cursor-default" title="Right-click to pin tooltip first">
+                show <span className="opacity-60">...</span>
+              </span>
+            )}
           </div>
         ) : (
           <div>
