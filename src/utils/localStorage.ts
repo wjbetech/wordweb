@@ -19,6 +19,7 @@ export interface UserPreferences {
   lineStyle: "default" | "straight" | "smoothstep" | "step" | "bezier";
   sidebarOpen: boolean;
   recentSearches: string[];
+  tooltipsEnabled: boolean;
 }
 
 const STORAGE_KEYS = {

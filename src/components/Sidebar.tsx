@@ -20,6 +20,8 @@ type SidebarProps = {
   onRecentSearchesChange?: (searches: string[]) => void;
   sidebarOpen?: boolean;
   onSidebarToggle?: (open: boolean) => void;
+  onTooltipToggle?: (enabled: boolean) => void;
+  tooltipsEnabled?: boolean;
 };
 
 import ThemeToggle from "./ThemeToggle";
@@ -37,10 +39,22 @@ export default function Sidebar({
   recentSearches: externalRecentSearches = [],
   onRecentSearchesChange,
   sidebarOpen: externalSidebarOpen,
-  onSidebarToggle
+  onSidebarToggle,
+  onTooltipToggle,
+  tooltipsEnabled = true
 }: SidebarProps) {
   // Tab state
   const [activeTab, setActiveTab] = useState<"main" | "settings">("main");
+
+  // Tooltip preference state with localStorage persistence
+  const [showTooltips, setShowTooltips] = useState(() => {
+    if (tooltipsEnabled !== undefined) return tooltipsEnabled;
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("showTooltips");
+      return stored === null ? true : stored === "true";
+    }
+    return true;
+  });
 
   // Persist sidebar state in localStorage (fallback if no external state)
   const [open, setOpen] = useState(() => {
@@ -77,6 +91,16 @@ export default function Sidebar({
       localStorage.setItem("sidebarOpen", open.toString());
     }
   }, [open, onSidebarToggle, externalSidebarOpen]);
+
+  // Sync tooltip preference with external handler and localStorage
+  useEffect(() => {
+    if (onTooltipToggle && tooltipsEnabled !== showTooltips) {
+      onTooltipToggle(showTooltips);
+    }
+    if (typeof window !== "undefined" && tooltipsEnabled === undefined) {
+      localStorage.setItem("showTooltips", showTooltips.toString());
+    }
+  }, [showTooltips, onTooltipToggle, tooltipsEnabled]);
 
   // Handle search
   async function handleSearch(e: React.FormEvent) {
@@ -445,8 +469,8 @@ export default function Sidebar({
                         toggle toggle-sm
                         ${isDark ? "toggle-primary" : "toggle-success"}
                       `}
-                        defaultChecked
-                        disabled
+                        checked={showTooltips}
+                        onChange={(e) => setShowTooltips(e.target.checked)}
                       />
                       <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
                         Show tooltips

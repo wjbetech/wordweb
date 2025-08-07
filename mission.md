@@ -151,6 +151,21 @@
 - [ ] **Drag-to-Connect Nodes**: Manual relationship creation between any two nodes
 - [ ] **Link Sharing**: Generate shareable URLs for specific word maps and explorations
 
+### Enhanced Customization & Control
+
+- [ ] **Tooltip Toggle System**: Allow users to disable/enable tooltips to reduce visual clutter
+  - Settings panel toggle for tooltip visibility
+  - User preference persistence in localStorage
+  - Smooth transition states when toggling on/off
+- [ ] **Relevance Filtering**: Enable minimum relevance threshold for word generation
+  - Slider control for relevance score requirements (e.g., only "Very Strong" connections)
+  - Dynamic filtering based on Datamuse API score values
+  - Visual indicators showing current relevance level
+- [ ] **Advanced Search Refinement**: Secondary input field for search narrowing
+  - Optional second search term to further focus results (e.g., "technology" + "healthcare")
+  - Combination search logic for more targeted word discovery
+  - Real-time filtering of existing nodes based on secondary criteria
+
 ### Export & Sharing Ecosystem
 
 - [ ] **Enhanced Export Suite**:

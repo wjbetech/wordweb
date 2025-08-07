@@ -24,6 +24,7 @@ interface UsePersistenceProps {
   lineStyle: LineStyle;
   sidebarOpen: boolean;
   recentSearches: string[];
+  tooltipsEnabled: boolean;
 }
 
 interface UsePersistenceReturn {
@@ -43,7 +44,8 @@ export const usePersistence = ({
   isDark,
   lineStyle,
   sidebarOpen,
-  recentSearches
+  recentSearches,
+  tooltipsEnabled
 }: UsePersistenceProps): UsePersistenceReturn => {
   const isStorageSupported = isStorageAvailable();
 
@@ -74,10 +76,11 @@ export const usePersistence = ({
       theme: isDark ? "dark" : "light",
       lineStyle,
       sidebarOpen,
-      recentSearches
+      recentSearches,
+      tooltipsEnabled
     };
     saveUserPreferences(preferences);
-  }, [isDark, lineStyle, sidebarOpen, recentSearches, isStorageSupported]);
+  }, [isDark, lineStyle, sidebarOpen, recentSearches, tooltipsEnabled, isStorageSupported]);
 
   const saveCurrentState = useCallback(() => {
     if (!isStorageSupported) return;

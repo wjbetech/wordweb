@@ -40,6 +40,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     const savedPrefs = loadUserPreferences();
     return savedPrefs?.sidebarOpen || false;
   });
+  const [tooltipsEnabled, setTooltipsEnabled] = useState(() => {
+    const savedPrefs = loadUserPreferences();
+    return savedPrefs?.tooltipsEnabled !== undefined ? savedPrefs.tooltipsEnabled : true;
+  });
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     const savedPrefs = loadUserPreferences();
     return savedPrefs?.recentSearches || [];
@@ -77,7 +81,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     isDark,
     lineStyle,
     sidebarOpen,
-    recentSearches
+    recentSearches,
+    tooltipsEnabled
   });
 
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
@@ -166,6 +171,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       onThemeChange(savedPrefs.theme === "dark");
     }
   }, [loadSavedState, reactFlow, isDark, onThemeChange]);
+
+  // Clear tooltips when disabled
+  useEffect(() => {
+    if (!tooltipsEnabled && tooltipData.isVisible) {
+      setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }));
+    }
+  }, [tooltipsEnabled, tooltipData.isVisible]);
 
   // Helper: check if a position is too close to any node
   const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
@@ -589,6 +601,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     setLastClickedWord("");
   }, []);
 
+  const handleTooltipToggle = useCallback((enabled: boolean) => {
+    setTooltipsEnabled(enabled);
+  }, []);
+
   const nodeTypes = { colored: ColoredNode };
 
   return (
@@ -634,8 +650,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         elementsSelectable={true}
         nodesConnectable={false}
         onNodeMouseEnter={(event, node) => {
-          // Only show tooltip on hover if not pinned
-          if (!tooltipData.isPinned) {
+          // Only show tooltip on hover if tooltips enabled and not pinned
+          if (tooltipsEnabled && !tooltipData.isPinned) {
             const rect = event.currentTarget.getBoundingClientRect();
             setTooltipData({
               word: node.data.label,
@@ -651,13 +667,15 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           }
         }}
         onNodeMouseLeave={() => {
-          // Only hide on mouse leave if not pinned
-          if (!tooltipData.isPinned) {
+          // Only hide on mouse leave if not pinned and tooltips enabled
+          if (tooltipsEnabled && !tooltipData.isPinned) {
             setTooltipData((prev) => ({ ...prev, isVisible: false }));
           }
         }}
         onNodeContextMenu={(event, node) => {
-          // Right-click to pin/unpin tooltip
+          // Right-click to pin/unpin tooltip (only if tooltips enabled)
+          if (!tooltipsEnabled) return;
+
           event.preventDefault();
           const rect = event.currentTarget.getBoundingClientRect();
 
@@ -702,6 +720,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onRecentSearchesChange={setRecentSearches}
         sidebarOpen={sidebarOpen}
         onSidebarToggle={setSidebarOpen}
+        tooltipsEnabled={tooltipsEnabled}
+        onTooltipToggle={handleTooltipToggle}
       />
 
       <ConfirmModal
@@ -736,7 +756,7 @@ Try expanding a different word or start a new word web to continue discovering c
         word={tooltipData.word}
         score={tooltipData.score}
         position={tooltipData.position}
-        isVisible={tooltipData.isVisible}
+        isVisible={tooltipsEnabled && tooltipData.isVisible}
         isPinned={tooltipData.isPinned}
         isDark={isDark}
         onClose={() => setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }))}
