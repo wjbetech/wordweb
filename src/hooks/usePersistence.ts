@@ -17,6 +17,7 @@ interface UsePersistenceProps {
   nodes: Node[];
   edges: Edge[];
   expandedNodes: Set<string>;
+  usedWords: Set<string>;
   viewport: { x: number; y: number; zoom: number };
   centerWord?: string;
   isDark: boolean;
@@ -36,6 +37,7 @@ export const usePersistence = ({
   nodes,
   edges,
   expandedNodes,
+  usedWords,
   viewport,
   centerWord,
   isDark,
@@ -54,6 +56,7 @@ export const usePersistence = ({
         nodes,
         edges,
         expandedNodes: Array.from(expandedNodes),
+        usedWords: Array.from(usedWords),
         viewport,
         centerWord
       };
@@ -61,7 +64,7 @@ export const usePersistence = ({
     }, 1000); // Debounce saves by 1 second
 
     return () => clearTimeout(timeoutId);
-  }, [nodes, edges, expandedNodes, viewport, centerWord, isStorageSupported]);
+  }, [nodes, edges, expandedNodes, usedWords, viewport, centerWord, isStorageSupported]);
 
   // Auto-save user preferences when they change
   useEffect(() => {
@@ -83,11 +86,12 @@ export const usePersistence = ({
       nodes,
       edges,
       expandedNodes: Array.from(expandedNodes),
+      usedWords: Array.from(usedWords),
       viewport,
       centerWord
     };
     saveGraphState(graphState);
-  }, [nodes, edges, expandedNodes, viewport, centerWord, isStorageSupported]);
+  }, [nodes, edges, expandedNodes, usedWords, viewport, centerWord, isStorageSupported]);
 
   const loadSavedState = useCallback(() => {
     if (!isStorageSupported) return null;

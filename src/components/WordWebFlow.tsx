@@ -29,6 +29,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
+  const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
   const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isUpdatingLineStyle, setIsUpdatingLineStyle] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,6 +43,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     return savedPrefs?.recentSearches || [];
   });
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showNoUniqueWordsModal, setShowNoUniqueWordsModal] = useState(false);
+  const [lastClickedWord, setLastClickedWord] = useState<string>("");
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -53,6 +56,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     nodes,
     edges,
     expandedNodes,
+    usedWords,
     viewport,
     centerWord,
     isDark,
@@ -131,6 +135,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       setNodes(savedState.nodes);
       setEdges(savedState.edges);
       setExpandedNodes(new Set(savedState.expandedNodes));
+      setUsedWords(new Set(savedState.usedWords || []));
       if (savedState.centerWord) {
         setCenterWord(savedState.centerWord);
       }
@@ -273,6 +278,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       setNodes([]);
       setEdges([]);
       setExpandedNodes(new Set());
+      setUsedWords(new Set([searchWord.toLowerCase()])); // Initialize with center word
 
       // Reset viewport
       reactFlow.setViewport({
@@ -325,6 +331,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             return node;
           });
           setNodes([centerNode, ...relatedNodes]);
+
+          // Add related words to usedWords set
+          setUsedWords((prev) => {
+            const newSet = new Set(prev);
+            related.slice(0, 8).forEach((word) => newSet.add(word.toLowerCase()));
+            return newSet;
+          });
+
           const initialEdges = relatedNodes.map((n) => ({
             id: `e-${centerId}-${n.id}`,
             source: centerId,
@@ -414,13 +428,38 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             ]);
 
             const related = results.slice(0, 4).map((w: { word: string }) => w.word);
+
+            // Filter out words that have already been used anywhere in the web
+            const uniqueRelated = related.filter((word) => !usedWords.has(word.toLowerCase()));
+
+            // Check if we have any unique words to show
+            if (uniqueRelated.length === 0) {
+              // No unique words available - show modal
+              setLastClickedWord(node.data.label);
+              setShowNoUniqueWordsModal(true);
+
+              // Reset node state
+              setNodes((prev) =>
+                prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n))
+              );
+
+              // Remove from loading state
+              setLoadingNodes((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(node.id);
+                return newSet;
+              });
+
+              return; // Exit early
+            }
+
             const parentDepth = node.data.depth ?? 1;
             const depth = parentDepth + 1;
             const baseRadius = 160;
             const spreadStep = 120;
             const placed: Node[] = [node, ...nodes];
 
-            const newNodes: Node[] = related.map((word) => {
+            const newNodes: Node[] = uniqueRelated.map((word) => {
               const position = findNonOverlappingPosition(
                 node.position.x,
                 node.position.y,
@@ -460,6 +499,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             setNodes((prev) => [...prev, ...newNodes]);
             setEdges((prev) => [...prev, ...newEdges]);
 
+            // Add new words to usedWords set
+            setUsedWords((prev) => {
+              const newSet = new Set(prev);
+              uniqueRelated.forEach((word) => newSet.add(word.toLowerCase()));
+              return newSet;
+            });
+
             // Mark this node as expanded
             setExpandedNodes((prev) => new Set([...prev, node.id]));
 
@@ -491,7 +537,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }
       }
     },
-    [nodes, expandedNodes, loadingNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow]
+    [nodes, expandedNodes, loadingNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow, usedWords]
   );
 
   // Manual save/load/clear functions
@@ -508,6 +554,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     setNodes([]);
     setEdges([]);
     setExpandedNodes(new Set());
+    setUsedWords(new Set());
     setCenterWord("");
     clearSavedState();
     reactFlow.fitView();
@@ -516,6 +563,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   const handleCancelClear = useCallback(() => {
     setShowConfirmModal(false);
+  }, []);
+
+  const handleCloseNoUniqueWordsModal = useCallback(() => {
+    setShowNoUniqueWordsModal(false);
+    setLastClickedWord("");
   }, []);
 
   const nodeTypes = { colored: ColoredNode };
@@ -598,6 +650,20 @@ This will remove all nodes and edges, and cannot be undone."
         confirmButtonClass="btn-error"
         onConfirm={handleConfirmClear}
         onCancel={handleCancelClear}
+        isDark={isDark}
+      />
+
+      <ConfirmModal
+        isOpen={showNoUniqueWordsModal}
+        title="No More Unique Words"
+        message={`All related words for "${lastClickedWord}" have already been explored in this word web.
+
+Try expanding a different word or start a new word web to continue discovering connections.`}
+        confirmText="Got it"
+        cancelText=""
+        confirmButtonClass="btn-primary"
+        onConfirm={handleCloseNoUniqueWordsModal}
+        onCancel={handleCloseNoUniqueWordsModal}
         isDark={isDark}
       />
     </>

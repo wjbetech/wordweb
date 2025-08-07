@@ -5,6 +5,7 @@ export interface GraphState {
   nodes: Node[];
   edges: Edge[];
   expandedNodes: string[];
+  usedWords: string[];
   viewport: {
     x: number;
     y: number;
