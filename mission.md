@@ -107,8 +107,9 @@
 #### UI/UX Improvements
 
 - [x] **Consistent Theming**: Proper DaisyUI light/dark theme implementation - Complete sidebar theming with responsive backgrounds
-- [ ] **Theme Toggle**: User-controlled theme switching
+- [x] **Theme Toggle**: User-controlled theme switching
 - [x] **Zoom and Pan Controls**: Smooth navigation with context preservation - Auto-zoom on initial search
+- [ ] **Return to Core Word**: Generate a button at the top of the screen that when pressed, returns the user to their core word
 
 ### Phase 3: Enhanced Functionality 📋
 

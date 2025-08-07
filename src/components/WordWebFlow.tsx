@@ -5,6 +5,7 @@ import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import Sidebar from "./Sidebar";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
+import ConfirmModal from "./ConfirmModal";
 import { searchDatamuse } from "../api/datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
 import { usePersistence } from "../hooks/usePersistence";
@@ -40,6 +41,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     const savedPrefs = loadUserPreferences();
     return savedPrefs?.recentSearches || [];
   });
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -499,13 +501,22 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   }, [saveCurrentState]);
 
   const handleClearWordweb = useCallback(() => {
+    setShowConfirmModal(true);
+  }, []);
+
+  const handleConfirmClear = useCallback(() => {
     setNodes([]);
     setEdges([]);
     setExpandedNodes(new Set());
     setCenterWord("");
     clearSavedState();
     reactFlow.fitView();
+    setShowConfirmModal(false);
   }, [clearSavedState, reactFlow]);
+
+  const handleCancelClear = useCallback(() => {
+    setShowConfirmModal(false);
+  }, []);
 
   const nodeTypes = { colored: ColoredNode };
 
@@ -574,6 +585,20 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onRecentSearchesChange={setRecentSearches}
         sidebarOpen={sidebarOpen}
         onSidebarToggle={setSidebarOpen}
+      />
+
+      <ConfirmModal
+        isOpen={showConfirmModal}
+        title="Clear Word Web"
+        message="Are you sure you want to clear the current word web?
+
+This will remove all nodes and edges, and cannot be undone."
+        confirmText="Clear"
+        cancelText="Cancel"
+        confirmButtonClass="btn-error"
+        onConfirm={handleConfirmClear}
+        onCancel={handleCancelClear}
+        isDark={isDark}
       />
     </>
   );
