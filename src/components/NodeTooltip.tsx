@@ -110,7 +110,7 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
       style={tooltipStyle}
       className={`
         ${isDark ? "bg-zinc-800 border-zinc-600 text-white" : "bg-white border-gray-300 text-gray-900"}
-        border rounded-lg shadow-lg p-3 pointer-events-auto
+        border rounded-lg p-3 pointer-events-auto
         ${isExpanded ? "animate-pulse-once" : ""}
         ${isPinned ? "border-blue-400 shadow-blue-200/50" : ""}
       `}>
@@ -164,7 +164,7 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
             <button
               onClick={handleExpand}
               className={`
-                text-xs font-medium hover:underline
+                text-xs font-medium cursor-pointer hover:underline
                 ${isDark ? "text-blue-400" : "text-blue-600"}
               `}>
               show <span className="opacity-60">...</span>
@@ -177,10 +177,10 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
               <button
                 onClick={() => setIsExpanded(false)}
                 className={`
-                  text-xs opacity-60 hover:opacity-100
+                  text-xs opacity-60 cursor-pointer hover:opacity-100
                   ${isDark ? "text-gray-300" : "text-gray-600"}
                 `}>
-                minimize
+                ...minimize
               </button>
             </div>
 
