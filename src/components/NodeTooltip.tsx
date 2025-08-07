@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 interface NodeTooltipProps {
   word: string;
   score?: number;
-  tags?: string[];
   position: { x: number; y: number };
   isVisible: boolean;
   isPinned?: boolean;
@@ -21,7 +20,6 @@ interface WordDefinition {
 const NodeTooltip: React.FC<NodeTooltipProps> = ({
   word,
   score,
-  tags = [],
   position,
   isVisible,
   isPinned = false,
@@ -74,16 +72,6 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
 
   if (!isVisible) return null;
 
-  // Process tags for display
-  const processedTags = tags
-    .filter(
-      (tag) =>
-        !tag.startsWith("f:") && // Remove frequency tags
-        !tag.startsWith("u:") && // Remove usage tags
-        tag.length > 1
-    )
-    .slice(0, 3); // Limit to 3 tags
-
   // Calculate relationship strength
   const getStrengthLabel = (score: number) => {
     if (score >= 80000) return { label: "Very Strong", color: "text-green-600" };
@@ -115,12 +103,10 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
         ${isPinned ? "border-blue-400 shadow-blue-200/50" : ""}
       `}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <h4 className="font-bold text-lg">{word}</h4>
-          {isPinned && (
-            <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full font-medium">📌 pinned</span>
-          )}
+          {isPinned && <span className="text-lg">📌</span>}
         </div>
         {onClose && (
           <button
@@ -131,40 +117,23 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
         )}
       </div>
 
-      {/* Score and Strength */}
+      {/* Relevance Strength (without numeric score) */}
       {score && (
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs font-medium">Relevance:</span>
-          <span className={`text-xs font-semibold ${strength?.color}`}>{strength?.label}</span>
-          <span className="text-xs opacity-60">({score.toLocaleString()})</span>
-        </div>
-      )}
-
-      {/* Tags */}
-      {processedTags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {processedTags.map((tag, index) => (
-            <span
-              key={index}
-              className={`
-                text-xs px-2 py-1 rounded-full
-                ${isDark ? "bg-zinc-700 text-zinc-300" : "bg-gray-200 text-gray-700"}
-              `}>
-              {tag}
-            </span>
-          ))}
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-sm font-medium">Relevance:</span>
+          <span className={`text-sm font-semibold ${strength?.color}`}>{strength?.label}</span>
         </div>
       )}
 
       {/* Definition Section */}
-      <div className="border-t pt-2 mt-2">
+      <div className="border-t pt-4 mt-4">
         {!isExpanded ? (
           <div className="flex items-center justify-between">
-            <span className="text-xs opacity-70">Definition</span>
+            <span className="text-sm opacity-70">Definition</span>
             <button
               onClick={handleExpand}
               className={`
-                text-xs font-medium cursor-pointer hover:underline
+                text-sm font-medium cursor-pointer hover:underline
                 ${isDark ? "text-blue-400" : "text-blue-600"}
               `}>
               show <span className="opacity-60">...</span>
@@ -172,12 +141,12 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
           </div>
         ) : (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-medium">Definition</span>
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium">Definition</span>
               <button
                 onClick={() => setIsExpanded(false)}
                 className={`
-                  text-xs opacity-60 cursor-pointer hover:opacity-100
+                  text-sm opacity-60 cursor-pointer hover:opacity-100
                   ${isDark ? "text-gray-300" : "text-gray-600"}
                 `}>
                 ...minimize
@@ -185,17 +154,17 @@ const NodeTooltip: React.FC<NodeTooltipProps> = ({
             </div>
 
             {isLoadingDefinition ? (
-              <div className="text-xs opacity-60">Loading definition...</div>
+              <div className="text-sm opacity-60 py-2">Loading definition...</div>
             ) : definition ? (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {definition.partOfSpeech && (
-                  <div className="text-xs font-medium opacity-80 italic">{definition.partOfSpeech}</div>
+                  <div className="text-sm font-medium opacity-80 italic">{definition.partOfSpeech}</div>
                 )}
-                <div className="text-sm leading-relaxed">{definition.definition}</div>
-                {definition.example && <div className="text-xs opacity-70 italic">"{definition.example}"</div>}
+                <div className="text-base leading-relaxed py-1">{definition.definition}</div>
+                {definition.example && <div className="text-sm opacity-70 italic py-1">"{definition.example}"</div>}
               </div>
             ) : (
-              <div className="text-xs opacity-60">No definition available</div>
+              <div className="text-sm opacity-60 py-2">No definition available</div>
             )}
           </div>
         )}

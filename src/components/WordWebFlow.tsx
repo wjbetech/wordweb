@@ -735,7 +735,6 @@ Try expanding a different word or start a new word web to continue discovering c
       <NodeTooltip
         word={tooltipData.word}
         score={tooltipData.score}
-        tags={tooltipData.tags}
         position={tooltipData.position}
         isVisible={tooltipData.isVisible}
         isPinned={tooltipData.isPinned}
