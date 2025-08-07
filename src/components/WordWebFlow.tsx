@@ -6,7 +6,9 @@ import Sidebar from "./Sidebar";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
 import ConfirmModal from "./ConfirmModal";
+import NodeTooltip from "./NodeTooltip";
 import { searchDatamuse } from "../api/datamuse";
+import type { DatamuseWord } from "../types/Datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
 import { usePersistence } from "../hooks/usePersistence";
 import { loadUserPreferences } from "../utils/localStorage";
@@ -45,6 +47,19 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showNoUniqueWordsModal, setShowNoUniqueWordsModal] = useState(false);
   const [lastClickedWord, setLastClickedWord] = useState<string>("");
+  const [tooltipData, setTooltipData] = useState<{
+    word: string;
+    score?: number;
+    tags?: string[];
+    position: { x: number; y: number };
+    isVisible: boolean;
+    isPinned: boolean;
+  }>({
+    word: "",
+    position: { x: 0, y: 0 },
+    isVisible: false,
+    isPinned: false
+  });
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
 
@@ -269,7 +284,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   // Handler to create a word web
   const createWordWeb = useCallback(
-    async (searchWord: string, related: string[]) => {
+    async (searchWord: string, related: DatamuseWord[]) => {
       setIsInitialLoading(true);
       setError(null);
       setCenterWord(searchWord);
@@ -314,15 +329,17 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           const spreadStep = 140; // Increased to create more space between each layer
           const depth = 1;
           const placed: Node[] = [centerNode];
-          const relatedNodes: Node[] = related.slice(0, 8).map((word) => {
+          const relatedNodes: Node[] = related.slice(0, 8).map((wordData) => {
             const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
             const node = {
-              id: `related-${searchWord}-${word}`,
+              id: `related-${searchWord}-${wordData.word}`,
               data: {
-                label: word,
+                label: wordData.word,
                 depth,
                 color: colors[depth % colors.length],
-                isExpanded: false
+                isExpanded: false,
+                score: wordData.score,
+                tags: wordData.tags
               },
               position,
               type: "colored" as const
@@ -335,7 +352,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           // Add related words to usedWords set
           setUsedWords((prev) => {
             const newSet = new Set(prev);
-            related.slice(0, 8).forEach((word) => newSet.add(word.toLowerCase()));
+            related.slice(0, 8).forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
             return newSet;
           });
 
@@ -427,10 +444,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               new Promise((resolve) => setTimeout(resolve, 600))
             ]);
 
-            const related = results.slice(0, 4).map((w: { word: string }) => w.word);
+            const related = results.slice(0, 4);
 
             // Filter out words that have already been used anywhere in the web
-            const uniqueRelated = related.filter((word) => !usedWords.has(word.toLowerCase()));
+            const uniqueRelated = related.filter((wordData) => !usedWords.has(wordData.word.toLowerCase()));
 
             // Check if we have any unique words to show
             if (uniqueRelated.length === 0) {
@@ -459,7 +476,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             const spreadStep = 120;
             const placed: Node[] = [node, ...nodes];
 
-            const newNodes: Node[] = uniqueRelated.map((word) => {
+            const newNodes: Node[] = uniqueRelated.map((wordData) => {
               const position = findNonOverlappingPosition(
                 node.position.x,
                 node.position.y,
@@ -469,12 +486,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
                 placed
               );
               const n = {
-                id: `expanded-${node.id}-${word}`,
+                id: `expanded-${node.id}-${wordData.word}`,
                 data: {
-                  label: word,
+                  label: wordData.word,
                   depth,
                   color: colors[depth % colors.length],
-                  isExpanded: false
+                  isExpanded: false,
+                  score: wordData.score,
+                  tags: wordData.tags
                 },
                 position,
                 type: "colored" as const
@@ -502,7 +521,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             // Add new words to usedWords set
             setUsedWords((prev) => {
               const newSet = new Set(prev);
-              uniqueRelated.forEach((word) => newSet.add(word.toLowerCase()));
+              uniqueRelated.forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
               return newSet;
             });
 
@@ -613,7 +632,53 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }}
         edgesFocusable={true}
         elementsSelectable={true}
-        nodesConnectable={false}>
+        nodesConnectable={false}
+        onNodeMouseEnter={(event, node) => {
+          // Only show tooltip on hover if not pinned
+          if (!tooltipData.isPinned) {
+            const rect = event.currentTarget.getBoundingClientRect();
+            setTooltipData({
+              word: node.data.label,
+              score: node.data.score,
+              tags: node.data.tags,
+              position: {
+                x: event.clientX || rect.left + rect.width / 2,
+                y: event.clientY || rect.top
+              },
+              isVisible: true,
+              isPinned: false
+            });
+          }
+        }}
+        onNodeMouseLeave={() => {
+          // Only hide on mouse leave if not pinned
+          if (!tooltipData.isPinned) {
+            setTooltipData((prev) => ({ ...prev, isVisible: false }));
+          }
+        }}
+        onNodeContextMenu={(event, node) => {
+          // Right-click to pin/unpin tooltip
+          event.preventDefault();
+          const rect = event.currentTarget.getBoundingClientRect();
+
+          // If clicking the same node that's already pinned, unpin it
+          if (tooltipData.isPinned && tooltipData.word === node.data.label) {
+            setTooltipData((prev) => ({ ...prev, isPinned: false, isVisible: false }));
+          } else {
+            // Pin the tooltip for this node
+            setTooltipData({
+              word: node.data.label,
+              score: node.data.score,
+              tags: node.data.tags,
+              position: {
+                x: event.clientX || rect.left + rect.width / 2,
+                y: event.clientY || rect.top
+              },
+              isVisible: true,
+              isPinned: true
+            });
+          }
+        }}>
         <Background
           color={isDark ? "#374151" : "#ddd"}
           variant={BackgroundVariant.Lines}
@@ -665,6 +730,17 @@ Try expanding a different word or start a new word web to continue discovering c
         onConfirm={handleCloseNoUniqueWordsModal}
         onCancel={handleCloseNoUniqueWordsModal}
         isDark={isDark}
+      />
+
+      <NodeTooltip
+        word={tooltipData.word}
+        score={tooltipData.score}
+        tags={tooltipData.tags}
+        position={tooltipData.position}
+        isVisible={tooltipData.isVisible}
+        isPinned={tooltipData.isPinned}
+        isDark={isDark}
+        onClose={() => setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }))}
       />
     </>
   );

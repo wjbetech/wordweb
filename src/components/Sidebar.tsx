@@ -7,7 +7,7 @@ import Spinner from "./Spinner";
 type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
 type SidebarProps = {
-  onSearch?: (centerWord: string, related: string[]) => void;
+  onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
   onLineStyleChange?: (style: LineStyle) => void;
   currentLineStyle?: LineStyle;
   onThemeChange?: (isDark: boolean) => void;
@@ -103,7 +103,7 @@ export default function Sidebar({
       ]);
 
       // Get 5-8 related words (or less if not enough)
-      const related = results.slice(0, 8).map((w: DatamuseWord) => w.word);
+      const related = results.slice(0, 8);
       if (onSearch) await onSearch(searchTerm, related);
     } catch (err) {
       console.error("Search failed:", err);
