@@ -14,7 +14,7 @@ import {
   saveNamedAppState,
   loadNamedAppState,
   deleteNamedAppState,
-  type AppState,
+  type AppState
 } from "../utils/localStorage";
 import SharePanel from "./SharePanel";
 
@@ -61,12 +61,10 @@ export default function Sidebar({
   onExportSVG,
   onExportPDF,
   onExportJSON,
-  onImportJSON,
+  onImportJSON
 }: SidebarProps) {
   // Tab state
-  const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">(
-    "main"
-  );
+  const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">("main");
 
   // Tooltip preference state with localStorage persistence
   const [showTooltips, setShowTooltips] = useState(() => {
@@ -147,18 +145,12 @@ export default function Sidebar({
 
     // Add to recent searches through external handler or fallback
     if (onRecentSearchesChange) {
-      const updated = [
-        searchTerm,
-        ...externalRecentSearches.filter((t: string) => t !== searchTerm),
-      ].slice(0, 5);
+      const updated = [searchTerm, ...externalRecentSearches.filter((t: string) => t !== searchTerm)].slice(0, 5);
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
       const current = stored ? JSON.parse(stored) : [];
-      const updated = [
-        searchTerm,
-        ...current.filter((t: string) => t !== searchTerm),
-      ].slice(0, 5);
+      const updated = [searchTerm, ...current.filter((t: string) => t !== searchTerm)].slice(0, 5);
       localStorage.setItem("recentSearches", JSON.stringify(updated));
     }
 
@@ -166,7 +158,7 @@ export default function Sidebar({
     try {
       const [results] = await Promise.all([
         searchDatamuse(searchTerm),
-        new Promise((resolve) => setTimeout(resolve, 800)),
+        new Promise((resolve) => setTimeout(resolve, 800))
       ]);
 
       const related = results.slice(0, 8);
@@ -185,9 +177,7 @@ export default function Sidebar({
     if (combinedLoading) return;
 
     if (onRecentSearchesChange) {
-      const updated = externalRecentSearches.filter(
-        (term: string) => term !== termToRemove
-      );
+      const updated = externalRecentSearches.filter((term: string) => term !== termToRemove);
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
@@ -266,11 +256,9 @@ export default function Sidebar({
           open ? "translate-x-0" : "-translate-x-full"
         } ${themeClasses.sidebarBg(isDark)}`}
         style={{
-          fontFamily:
-            "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
-          fontWeight: 500,
-        }}
-      >
+          fontFamily: "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          fontWeight: 500
+        }}>
         {/* Header controls */}
         <div className="absolute top-3 left-0 right-3 flex justify-between items-center px-3">
           <button
@@ -279,25 +267,15 @@ export default function Sidebar({
             )}`}
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
-            aria-label="Close sidebar"
-          >
+            aria-label="Close sidebar">
             ←
           </button>
-          <ThemeToggle
-            isDark={isDark}
-            onToggle={() => onThemeChange?.(!isDark)}
-          />
+          <ThemeToggle isDark={isDark} onToggle={() => onThemeChange?.(!isDark)} />
         </div>
         {/* Scrollable content area */}
         <div className="mt-12 h-[calc(100%-3rem)] overflow-y-auto overflow-x-hidden">
           <div className="flex flex-col gap-3 pr-1">
-            <h2
-              className={`text-base font-bold ${themeClasses.primaryText(
-                isDark
-              )}`}
-            >
-              wordweb. Controls
-            </h2>
+            <h2 className={`text-base font-bold ${themeClasses.primaryText(isDark)}`}>wordweb. Controls</h2>
 
             {/* Error message */}
             {error && (
@@ -326,30 +304,18 @@ export default function Sidebar({
             <div className={themeClasses.tabContainer(isDark)}>
               <div className="flex gap-1">
                 <button
-                  className={themeClasses.tabButton(
-                    isDark,
-                    activeTab === "main"
-                  )}
-                  onClick={() => setActiveTab("main")}
-                >
+                  className={themeClasses.tabButton(isDark, activeTab === "main")}
+                  onClick={() => setActiveTab("main")}>
                   Main
                 </button>
                 <button
-                  className={themeClasses.tabButton(
-                    isDark,
-                    activeTab === "settings"
-                  )}
-                  onClick={() => setActiveTab("settings")}
-                >
+                  className={themeClasses.tabButton(isDark, activeTab === "settings")}
+                  onClick={() => setActiveTab("settings")}>
                   Settings
                 </button>
                 <button
-                  className={themeClasses.tabButton(
-                    isDark,
-                    activeTab === "share"
-                  )}
-                  onClick={() => setActiveTab("share")}
-                >
+                  className={themeClasses.tabButton(isDark, activeTab === "share")}
+                  onClick={() => setActiveTab("share")}>
                   Share
                 </button>
               </div>
@@ -360,19 +326,11 @@ export default function Sidebar({
               <div className={themeClasses.contentPanel(isDark)}>
                 {/* Line style selector */}
                 <div>
-                  <label
-                    className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(
-                      isDark
-                    )}`}
-                  >
+                  <label className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(isDark)}`}>
                     Line Style
                   </label>
                   <div className="dropdown dropdown-bottom w-full">
-                    <div
-                      tabIndex={0}
-                      role="button"
-                      className={themeClasses.dropdownButton(isDark)}
-                    >
+                    <div tabIndex={0} role="button" className={themeClasses.dropdownButton(isDark)}>
                       {currentLineStyle === "smoothstep"
                         ? "Smooth Step"
                         : currentLineStyle === "default"
@@ -380,45 +338,27 @@ export default function Sidebar({
                         : currentLineStyle === "straight"
                         ? "Straight"
                         : currentLineStyle}
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 9l-7 7-7-7"
-                        />
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
-                    <ul
-                      tabIndex={0}
-                      className={themeClasses.dropdownMenu(isDark)}
-                    >
+                    <ul tabIndex={0} className={themeClasses.dropdownMenu(isDark)}>
                       <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("default")}
-                          className={themeClasses.dropdownItem(isDark)}
-                        >
+                        <a onClick={() => onLineStyleChange?.("default")} className={themeClasses.dropdownItem(isDark)}>
                           Default
                         </a>
                       </li>
                       <li>
                         <a
                           onClick={() => onLineStyleChange?.("straight")}
-                          className={themeClasses.dropdownItem(isDark)}
-                        >
+                          className={themeClasses.dropdownItem(isDark)}>
                           Straight
                         </a>
                       </li>
                       <li>
                         <a
                           onClick={() => onLineStyleChange?.("smoothstep")}
-                          className={themeClasses.dropdownItem(isDark)}
-                        >
+                          className={themeClasses.dropdownItem(isDark)}>
                           Smooth Step
                         </a>
                       </li>
@@ -429,7 +369,6 @@ export default function Sidebar({
                 {/* Action buttons */}
                 <MainPanel
                   isDark={isDark}
-                  onNewGraph={() => {}}
                   onSaveGraph={openSaveModal}
                   onLoadGraph={openLoadModal}
                   onClearGraph={onClear || (() => {})}
@@ -440,11 +379,7 @@ export default function Sidebar({
             )}
 
             {activeTab === "settings" && (
-              <SettingsPanel
-                isDark={isDark}
-                showTooltips={showTooltips}
-                setShowTooltips={setShowTooltips}
-              />
+              <SettingsPanel isDark={isDark} showTooltips={showTooltips} setShowTooltips={setShowTooltips} />
             )}
 
             {activeTab === "share" && (
@@ -463,11 +398,7 @@ export default function Sidebar({
 
       {/* Minimal toggle button when sidebar is closed */}
       {!open && (
-        <button
-          className={themeClasses.sidebarToggle(isDark)}
-          onClick={() => setOpen(true)}
-          aria-label="Open sidebar"
-        >
+        <button className={themeClasses.sidebarToggle(isDark)} onClick={() => setOpen(true)} aria-label="Open sidebar">
           <span className={themeClasses.toggleIcon()}>☰</span>
         </button>
       )}

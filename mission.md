@@ -243,6 +243,10 @@
   - Slider control for relevance score requirements (e.g., only "Very Strong" connections)
   - Dynamic filtering based on Datamuse API score values
   - Visual indicators showing current relevance level
+- [ ] **Node Connector Customization**: Allow users to toggle between 2 or 4 connectors per node, and choose whether connectors appear on the sides or on the top/bottom of each node
+  - Settings panel toggle for connector count (2 or 4)
+  - Option to select connector orientation (sides or top/bottom)
+  - Node rendering updates dynamically based on user preference
 
 ### Export & Sharing Ecosystem
 

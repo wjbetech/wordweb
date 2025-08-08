@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  useReactFlow,
-  BackgroundVariant,
-} from "reactflow";
+import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from "reactflow";
 import ColoredNode from "./ColoredNode";
 import type { Node, Edge } from "reactflow";
 import Sidebar from "./Sidebar";
@@ -51,7 +46,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     unpinTooltip,
     closeTooltip,
     forceTooltipUpdate,
-    getTooltipPosition,
+    getTooltipPosition
   } = useTooltipState();
   const {
     showConfirmModal,
@@ -60,7 +55,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     openConfirmModal,
     closeConfirmModal,
     openNoUniqueWordsModal,
-    closeNoUniqueWordsModal,
+    closeNoUniqueWordsModal
   } = useModalState();
   const {
     isInitialLoading,
@@ -71,16 +66,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     stopLineStyleUpdate,
     addLoadingNode,
     removeLoadingNode,
-    isNodeLoading,
+    isNodeLoading
   } = useLoadingState();
-  const {
-    sidebarOpen,
-    setSidebarOpen,
-    tooltipsEnabled,
-    setTooltipsEnabled,
-    recentSearches,
-    setRecentSearches,
-  } = useUserPreferences();
+  const { sidebarOpen, setSidebarOpen, tooltipsEnabled, setTooltipsEnabled, recentSearches, setRecentSearches } =
+    useUserPreferences();
 
   // Get current viewport for persistence
   const viewport = reactFlow.getViewport();
@@ -97,7 +86,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     lineStyle,
     sidebarOpen,
     recentSearches,
-    tooltipsEnabled,
+    tooltipsEnabled
   });
 
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
@@ -116,7 +105,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     removeLoadingNode,
     isNodeLoading,
     openNoUniqueWordsModal,
-    setError,
+    setError
   });
   const { createWordWeb } = useWordWebCreation({
     setNodes,
@@ -128,7 +117,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     startInitialLoading,
     stopInitialLoading,
     lineStyle,
-    edgeColor,
+    edgeColor
   });
 
   // Set ReactFlow canvas background color based on theme
@@ -158,8 +147,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           style: {
             ...edge.style,
             stroke: edgeColor,
-            strokeWidth: 1.5,
-          },
+            strokeWidth: 1.5
+          }
         }))
       );
 
@@ -176,8 +165,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         style: {
           ...edge.style,
           stroke: edgeColor,
-          strokeWidth: 1.5,
-        },
+          strokeWidth: 1.5
+        }
       }))
     );
   }, [edgeColor]);
@@ -257,15 +246,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     if (!centerWord) return;
 
     // Find the center word node
-    const centerNode = nodes.find(
-      (node) => node.data.label.toLowerCase() === centerWord.toLowerCase()
-    );
+    const centerNode = nodes.find((node) => node.data.label.toLowerCase() === centerWord.toLowerCase());
 
     if (centerNode) {
       // Center the view on the core word node
       reactFlow.setCenter(centerNode.position.x, centerNode.position.y, {
         zoom: 1.2,
-        duration: 800,
+        duration: 800
       });
 
       // Briefly highlight the center node by showing its tooltip
@@ -274,7 +261,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           word: centerNode.data.label,
           score: centerNode.data.score,
           tags: centerNode.data.tags,
-          nodeId: centerNode.id,
+          nodeId: centerNode.id
         });
 
         // Auto-hide after 2 seconds
@@ -285,15 +272,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }, 2000);
       }
     }
-  }, [
-    centerWord,
-    nodes,
-    reactFlow,
-    tooltipsEnabled,
-    showTooltip,
-    tooltipData.isPinned,
-    hideTooltip,
-  ]);
+  }, [centerWord, nodes, reactFlow, tooltipsEnabled, showTooltip, tooltipData.isPinned, hideTooltip]);
 
   // Export current graph to PDF (fits all nodes, captures canvas, embeds PNG in PDF)
   const handleExportPDF = useCallback(async () => {
@@ -318,7 +297,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       const dataUrl = await htmlToImage.toPng(element, {
         pixelRatio: 2,
         backgroundColor,
-        cacheBust: true,
+        cacheBust: true
       });
 
       // Measure image to preserve aspect ratio in PDF
@@ -363,12 +342,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     <>
       <div
         className="fixed inset-0 flex items-center justify-center overflow-hidden pointer-events-none"
-        style={{ zIndex: 1 }}
-      >
-        <div
-          className="text-5xl font-bold opacity-10 select-none"
-          style={{ color: isDark ? "#ece2c7" : "#374151" }}
-        >
+        style={{ zIndex: 1 }}>
+        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#ece2c7" : "#374151" }}>
           wordweb.
         </div>
       </div>
@@ -387,14 +362,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               }
               shadow-lg backdrop-blur-sm font-medium
             `}
-            title={`Return to "${centerWord}"`}
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            title={`Return to "${centerWord}"`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -407,15 +376,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         </div>
       )}
 
-      {isInitialLoading && (
-        <LoadingOverlay isDark={isDark} message="Generating word web..." />
-      )}
+      {isInitialLoading && <LoadingOverlay isDark={isDark} message="Generating word web..." />}
 
-      <Toast
-        message="Line style updated!"
-        isVisible={isUpdatingLineStyle}
-        isDark={isDark}
-      />
+      <Toast message="Line style updated!" isVisible={isUpdatingLineStyle} isDark={isDark} />
 
       <div ref={flowWrapperRef} className="w-full h-full">
         <ReactFlow
@@ -442,7 +405,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           defaultEdgeOptions={{
             style: { stroke: edgeColor, strokeWidth: 1.5 },
             type: lineStyle,
-            animated: false,
+            animated: false
           }}
           edgesFocusable={true}
           elementsSelectable={true}
@@ -457,7 +420,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               word: node.data.label,
               score: node.data.score,
               tags: node.data.tags,
-              nodeId: node.id,
+              nodeId: node.id
             });
           }}
           onNodeMouseLeave={() => {
@@ -481,10 +444,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
               // After a brief delay, check if mouse is still over the node and hide if needed
               setTimeout(() => {
-                if (
-                  !tooltipData.isPinned &&
-                  tooltipData.word === node.data.label
-                ) {
+                if (!tooltipData.isPinned && tooltipData.word === node.data.label) {
                   hideTooltip();
                 }
               }, 100); // Short delay to allow for natural mouse movement
@@ -494,11 +454,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
                 word: node.data.label,
                 score: node.data.score,
                 tags: node.data.tags,
-                nodeId: node.id,
+                nodeId: node.id
               });
             }
-          }}
-        >
+          }}>
           <Background
             color={isDark ? "#374151" : "#ddd"}
             variant={BackgroundVariant.Lines}
