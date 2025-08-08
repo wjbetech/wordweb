@@ -107,7 +107,7 @@ export default function SearchSection({
         `}
         title="Generate a word web from a random interesting word"
       >
-        🎲 Surprise Me
+        🎲 Surprise Me!
       </button>
 
       {/* Recent searches */}
