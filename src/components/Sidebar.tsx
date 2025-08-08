@@ -116,7 +116,7 @@ export default function Sidebar({
       const updated = [
         searchTerm,
         ...externalRecentSearches.filter((t: string) => t !== searchTerm),
-      ].slice(0, 8);
+      ].slice(0, 5);
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
@@ -124,7 +124,7 @@ export default function Sidebar({
       const updated = [
         searchTerm,
         ...current.filter((t: string) => t !== searchTerm),
-      ].slice(0, 8);
+      ].slice(0, 5);
       localStorage.setItem("recentSearches", JSON.stringify(updated));
     }
 
@@ -277,9 +277,9 @@ export default function Sidebar({
             {recent.length > 0 && (
               <div>
                 <div
-                  className={`text-sm mb-2 font-semibold ${
-                    isDark ? "text-gray-400" : "text-gray-600"
-                  }`}
+                  className={`text-sm mb-2 font-semibold ${themeClasses.mutedText(
+                    isDark
+                  )}`}
                 >
                   Recent searches:
                 </div>
@@ -287,14 +287,10 @@ export default function Sidebar({
                   {recent.map((term: string) => (
                     <div
                       key={term}
-                      className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity ${
+                      className={`${themeClasses.searchTag(isDark)} ${
                         isLoading || externalLoading
                           ? "opacity-50 cursor-not-allowed"
                           : ""
-                      } ${
-                        isDark
-                          ? "bg-zinc-700 text-gray-200 hover:bg-zinc-600"
-                          : "bg-zinc-600 text-white hover:bg-zinc-700"
                       }`}
                     >
                       <span
@@ -306,14 +302,10 @@ export default function Sidebar({
                       <button
                         onClick={(e) => handleRemoveRecentSearch(term, e)}
                         disabled={isLoading || externalLoading}
-                        className={`text-sm leading-none cursor-pointer transition-colors duration-200 font-bold ${
+                        className={`${themeClasses.searchTagRemove(isDark)} ${
                           isLoading || externalLoading
                             ? "cursor-not-allowed"
                             : ""
-                        } ${
-                          isDark
-                            ? "text-gray-400 hover:text-red-400"
-                            : "text-gray-300 hover:text-red-300"
                         }`}
                         aria-label={`Remove ${term} from recent searches`}
                         title={`Remove ${term}`}

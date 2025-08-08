@@ -70,4 +70,21 @@ export const themeClasses = {
   toggleLabel: (isDark: boolean) =>
     getThemeClasses(isDark, "text-gray-300", "text-gray-700") +
     " text-sm leading-relaxed break-words hyphens-auto word-break overflow-wrap-anywhere whitespace-normal flex-1 min-w-0",
+
+  // Recent search tags
+  searchTag: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "bg-zinc-700 text-gray-200 hover:bg-zinc-600",
+      "bg-zinc-600 text-white hover:bg-zinc-700"
+    ) +
+    " relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity",
+
+  searchTagRemove: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "text-gray-400 hover:text-red-400",
+      "text-gray-300 hover:text-red-300"
+    ) +
+    " text-sm leading-none cursor-pointer transition-colors duration-200 font-bold",
 };
