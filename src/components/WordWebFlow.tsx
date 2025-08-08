@@ -254,6 +254,49 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     closeNoUniqueWordsModal();
   }, [closeNoUniqueWordsModal]);
 
+  // Handle return to core word
+  const handleReturnToCoreWord = useCallback(() => {
+    if (!centerWord) return;
+
+    // Find the center word node
+    const centerNode = nodes.find(
+      (node) => node.data.label.toLowerCase() === centerWord.toLowerCase()
+    );
+
+    if (centerNode) {
+      // Center the view on the core word node
+      reactFlow.setCenter(centerNode.position.x, centerNode.position.y, {
+        zoom: 1.2,
+        duration: 800,
+      });
+
+      // Briefly highlight the center node by showing its tooltip
+      if (tooltipsEnabled) {
+        showTooltip({
+          word: centerNode.data.label,
+          score: centerNode.data.score,
+          tags: centerNode.data.tags,
+          nodeId: centerNode.id,
+        });
+
+        // Auto-hide after 2 seconds
+        setTimeout(() => {
+          if (!tooltipData.isPinned) {
+            hideTooltip();
+          }
+        }, 2000);
+      }
+    }
+  }, [
+    centerWord,
+    nodes,
+    reactFlow,
+    tooltipsEnabled,
+    showTooltip,
+    tooltipData.isPinned,
+    hideTooltip,
+  ]);
+
   const nodeTypes = { colored: ColoredNode };
 
   return (
@@ -269,6 +312,40 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           wordweb.
         </div>
       </div>
+
+      {/* Return to Core Word Button */}
+      {centerWord && nodes.length > 1 && (
+        <div className="fixed top-6 left-1/2 transform -translate-x-1/2 z-20 pointer-events-auto">
+          <button
+            onClick={handleReturnToCoreWord}
+            className={`
+              btn btn-sm gap-2 transition-all duration-200 hover:scale-105
+              ${
+                isDark
+                  ? "bg-gray-100 hover:bg-white text-gray-800 border-2 border-gray-300 hover:border-gray-400"
+                  : "bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-400 hover:border-gray-500"
+              }
+              shadow-lg backdrop-blur-sm font-medium
+            `}
+            title={`Return to "${centerWord}"`}
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+              />
+            </svg>
+            {centerWord}
+          </button>
+        </div>
+      )}
 
       {isInitialLoading && (
         <LoadingOverlay isDark={isDark} message="Generating word web..." />
