@@ -1,6 +1,7 @@
 // src/components/SearchSection.tsx
 import Spinner from "./Spinner";
 import { themeClasses } from "../utils/themeUtils";
+import { getRandomWord } from "../utils/randomWords";
 
 type SearchSectionProps = {
   searchTerm: string;
@@ -27,10 +28,26 @@ export default function SearchSection({
 }: SearchSectionProps) {
   const combinedLoading = isLoading || externalLoading;
 
+  const handleSurpriseMe = () => {
+    if (combinedLoading) return;
+
+    // Get a random word, excluding the current search term
+    const randomWord = getRandomWord(searchTerm);
+    setSearchTerm(randomWord);
+
+    // Automatically trigger the search
+    setTimeout(() => {
+      const form = document.querySelector("form") as HTMLFormElement;
+      if (form) {
+        form.requestSubmit();
+      }
+    }, 100);
+  };
+
   return (
     <>
       {/* Search input */}
-      <form onSubmit={onSearch} className="flex gap-2 mb-2">
+      <form onSubmit={onSearch} className="flex gap-2">
         <label className="input input-sm flex-1 flex items-center gap-2">
           <svg
             className="h-[1em] opacity-50"
@@ -70,6 +87,28 @@ export default function SearchSection({
           )}
         </button>
       </form>
+
+      {/* Surprise Me Button */}
+      <button
+        onClick={handleSurpriseMe}
+        disabled={combinedLoading}
+        className={`
+          btn btn-sm w-full mb-2 gap-2 transition-all duration-200
+          ${
+            isDark
+              ? "btn-outline border-purple-400 text-purple-300 hover:bg-purple-400 hover:text-white hover:border-purple-400"
+              : "btn-outline border-purple-500 text-purple-600 hover:bg-purple-500 hover:text-white hover:border-purple-500"
+          }
+          ${
+            combinedLoading
+              ? "opacity-50 cursor-not-allowed"
+              : "hover:scale-[1.02]"
+          }
+        `}
+        title="Generate a word web from a random interesting word"
+      >
+        🎲 Surprise Me
+      </button>
 
       {/* Recent searches */}
       {recent.length > 0 && (
