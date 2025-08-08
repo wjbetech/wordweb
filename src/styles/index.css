@@ -1,7 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700&display=swap");
 @import "tailwindcss";
+/* stylelint-disable-next-line at-rule-no-unknown */
 @plugin "daisyui";
-@tailwind utilities;
 
 @layer base {
   :root,
