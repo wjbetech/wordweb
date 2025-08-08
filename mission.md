@@ -2,6 +2,23 @@
 
 > **Vision**: Create an intuitive, beautiful, and powerful visual word association tool that helps users explore language connections, brainstorm ideas, and discover semantic relationships through interactive graph visualization.
 
+## ✅ Status Update — August 2025
+
+- Completed recently:
+  - “Surprise me” random word search
+  - “Return to Core Word” navigation button
+  - Local named saves with Save/Load modals (DaisyUI)
+  - Dual-word experiment removed + storage cleanup
+  - Edge-cursor fix; major refactor; consistent modal styling
+- In progress:
+  - Improve Load: hydrate state without full page reload
+  - Export/Import JSON of wordwebs
+- Next steps (priority):
+  1. Hydrate saved state in-app (no reload) by adding a hydrate function in `WordWebFlow` and calling it from `Sidebar`
+  2. Export/Import JSON for wordwebs
+  3. PNG/SVG export via ReactFlow utilities
+  4. Optional: default save-name heuristic (center word + timestamp)
+
 ## 🎪 Core Purpose
 
 **wordweb.** aims to dramatically enhance and speed up the way people explore language and prototype ideas across industries by allowing users to very quickly initialize word relationships and build tangible, interactive visual networks. The goal is to bridge the gap between human creativity, discovery and optimization.
@@ -38,6 +55,7 @@
   - Lock/delete individual nodes
 - **Random Discovery**: "Surprise me" functionality for creative exploration
 - **Persistent State**: localStorage integration with future project save/load
+- **Local Named Saves**: Save and load multiple named word webs via styled modals
 - **Export Options**: PDF, PNG, SVG export capabilities
 - **Responsive Design**: Touch-optimized for mobile, works beautifully on desktop
 - **Accessibility**: Screen reader friendly with keyboard navigation
@@ -172,26 +190,16 @@
 - [x] **Line Style Customization**: Multiple edge styles (default, straight, smoothstep)
 - [x] **Advanced Tooltip System**: Pinnable tooltips with score and tag information
 - [x] **Recent Search Management**: Track and manage recent searches with delete functionality
-- [ ] **Random Word Search**: "Surprise me" functionality for discovery
+- [x] **Random Word Search**: "Surprise me" functionality for discovery
 - [ ] **Export Options**: Save to PDF, PNG, SVG formats
 - [x] **Advanced Node States**: Visual indicators for expanded/used states
+- [x] **Return to Core Word**: Button to return focus to the center word
 
-#### Performance & Optimization ✅
+#### Persistence UX
 
-- [x] **Mobile Responsiveness**: Touch-optimized interactions
-- [x] **Performance Optimizations**: Smooth animations, efficient re-renders through custom hooks
-- [x] **Graph Algorithms**: Smart node positioning and collision detection
-- [x] **Memory Management**: Proper state cleanup and optimization
-
-#### Core Feature Expansions
-
-- [x] **Line Style Customization**: Multiple edge styles (default, straight, smoothstep)
-- [x] **Advanced Tooltip System**: Pinnable tooltips with score and tag information
-- [x] **Recent Search Management**: Track and manage recent searches with delete functionality
-- [ ] **Random Word Search**: "Surprise me" functionality for discovery
-- [ ] **Export Options**: Save to PDF, PNG, SVG formats
-- [x] **Advanced Node States**: Visual indicators for expanded/used states
-- [ ] **Return to Core Word**: Generate a button at the top of the screen that when pressed, returns the user to their core word
+- [x] **Named Saves**: Save/Load modals and local named saves in localStorage
+- [ ] **Load Without Reload**: Hydrate saved state directly in-app
+- [ ] **Export/Import JSON**: Allow users to export/import wordwebs
 
 #### Performance & Optimization ✅
 

@@ -16,6 +16,7 @@ import {
   deleteNamedAppState,
   type AppState,
 } from "../utils/localStorage";
+import SharePanel from "./SharePanel";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -32,6 +33,11 @@ type SidebarProps = {
   onSidebarToggle?: (open: boolean) => void;
   onTooltipToggle?: (enabled: boolean) => void;
   tooltipsEnabled?: boolean;
+  onExportPNG?: () => void;
+  onExportSVG?: () => void;
+  onExportPDF?: () => void;
+  onExportJSON?: () => void;
+  onImportJSON?: (file: File) => void;
 };
 
 import ThemeToggle from "./ThemeToggle";
@@ -51,9 +57,16 @@ export default function Sidebar({
   onSidebarToggle,
   onTooltipToggle,
   tooltipsEnabled = true,
+  onExportPNG,
+  onExportSVG,
+  onExportPDF,
+  onExportJSON,
+  onImportJSON,
 }: SidebarProps) {
   // Tab state
-  const [activeTab, setActiveTab] = useState<"main" | "settings">("main");
+  const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">(
+    "main"
+  );
 
   // Tooltip preference state with localStorage persistence
   const [showTooltips, setShowTooltips] = useState(() => {
@@ -330,6 +343,15 @@ export default function Sidebar({
                 >
                   Settings
                 </button>
+                <button
+                  className={themeClasses.tabButton(
+                    isDark,
+                    activeTab === "share"
+                  )}
+                  onClick={() => setActiveTab("share")}
+                >
+                  Share
+                </button>
               </div>
             </div>
 
@@ -422,6 +444,17 @@ export default function Sidebar({
                 isDark={isDark}
                 showTooltips={showTooltips}
                 setShowTooltips={setShowTooltips}
+              />
+            )}
+
+            {activeTab === "share" && (
+              <SharePanel
+                isDark={isDark}
+                onExportPNG={onExportPNG}
+                onExportSVG={onExportSVG}
+                onExportPDF={onExportPDF}
+                onExportJSON={onExportJSON}
+                onImportJSON={onImportJSON}
               />
             )}
           </div>

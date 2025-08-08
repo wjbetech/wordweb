@@ -457,6 +457,21 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onSidebarToggle={setSidebarOpen}
         tooltipsEnabled={tooltipsEnabled}
         onTooltipToggle={setTooltipsEnabled}
+        onExportPNG={() => {
+          /* TODO: implement */
+        }}
+        onExportSVG={() => {
+          /* TODO: implement */
+        }}
+        onExportPDF={() => {
+          /* TODO: implement */
+        }}
+        onExportJSON={() => {
+          /* TODO: implement */
+        }}
+        onImportJSON={() => {
+          /* TODO: implement */
+        }}
       />
 
       <ConfirmModal
