@@ -5,7 +5,7 @@ import type { DatamuseWord } from "../types/Datamuse";
 import Spinner from "./Spinner";
 import { themeClasses } from "../utils/themeUtils";
 
-type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
+type LineStyle = "default" | "straight" | "smoothstep";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -217,15 +217,9 @@ export default function Sidebar({
 
             {/* Error message */}
             {error && (
-              <div
-                className={`p-2 rounded-lg text-sm mb-2 ${
-                  isDark
-                    ? "bg-red-900/30 text-red-200 border border-red-800"
-                    : "bg-red-50 text-red-800 border border-red-200"
-                }`}
-              >
+              <div className={themeClasses.errorContainer(isDark)}>
                 <div className="flex items-start gap-2">
-                  <span className="text-red-500 font-bold">⚠</span>
+                  <span className={themeClasses.errorIcon()}>⚠</span>
                   <span>{error}</span>
                 </div>
               </div>
@@ -319,55 +313,22 @@ export default function Sidebar({
             )}
 
             {/* Tab Navigation */}
-            <div
-              className={`
-            border rounded-lg p-1 mt-4 mb-4
-            ${
-              isDark
-                ? "border-zinc-600 bg-zinc-900/50"
-                : "border-gray-200 bg-gray-50"
-            }
-          `}
-            >
+            <div className={themeClasses.tabContainer(isDark)}>
               <div className="flex gap-1">
                 <button
-                  className={`
-                   cursor-pointer flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200
-                  ${
+                  className={themeClasses.tabButton(
+                    isDark,
                     activeTab === "main"
-                      ? `${
-                          isDark
-                            ? "bg-blue-600 text-white shadow-sm border border-blue-500"
-                            : "bg-white text-blue-600 shadow-sm border border-blue-200"
-                        }`
-                      : `${
-                          isDark
-                            ? "text-gray-400 hover:text-gray-200 hover:bg-zinc-800"
-                            : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                        }`
-                  }
-                `}
+                  )}
                   onClick={() => setActiveTab("main")}
                 >
                   Main
                 </button>
                 <button
-                  className={`
-                  cursor-pointer flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200
-                  ${
+                  className={themeClasses.tabButton(
+                    isDark,
                     activeTab === "settings"
-                      ? `${
-                          isDark
-                            ? "bg-blue-600 text-white shadow-sm border border-blue-500"
-                            : "bg-white text-blue-600 shadow-sm border border-blue-200"
-                        }`
-                      : `${
-                          isDark
-                            ? "text-gray-400 hover:text-gray-200 hover:bg-zinc-800"
-                            : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                        }`
-                  }
-                `}
+                  )}
                   onClick={() => setActiveTab("settings")}
                 >
                   Settings
@@ -390,9 +351,9 @@ export default function Sidebar({
                 {/* Line style selector */}
                 <div>
                   <label
-                    className={`block text-sm mb-2 font-semibold ${
-                      isDark ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(
+                      isDark
+                    )}`}
                   >
                     Line Style
                   </label>
@@ -400,14 +361,7 @@ export default function Sidebar({
                     <div
                       tabIndex={0}
                       role="button"
-                      className={`
-                    btn btn-sm w-full justify-between text-sm border
-                    ${
-                      isDark
-                        ? "bg-zinc-800 border-zinc-600 text-gray-200 hover:bg-zinc-700"
-                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }
-                  `}
+                      className={themeClasses.dropdownButton(isDark)}
                     >
                       {currentLineStyle === "smoothstep"
                         ? "Smooth Step"
@@ -415,10 +369,6 @@ export default function Sidebar({
                         ? "Default"
                         : currentLineStyle === "straight"
                         ? "Straight"
-                        : currentLineStyle === "step"
-                        ? "Step"
-                        : currentLineStyle === "bezier"
-                        ? "Bezier"
                         : currentLineStyle}
                       <svg
                         className="w-4 h-4"
@@ -436,21 +386,12 @@ export default function Sidebar({
                     </div>
                     <ul
                       tabIndex={0}
-                      className={`
-                      dropdown-content menu rounded-box z-[1] w-full p-2 shadow-lg mt-1 text-sm font-semibold border
-                      ${
-                        isDark
-                          ? "bg-zinc-800 border-zinc-600 text-gray-200"
-                          : "bg-white border-gray-300 text-gray-700"
-                      }
-                    `}
+                      className={themeClasses.dropdownMenu(isDark)}
                     >
                       <li>
                         <a
                           onClick={() => onLineStyleChange?.("default")}
-                          className={
-                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
-                          }
+                          className={themeClasses.dropdownItem(isDark)}
                         >
                           Default
                         </a>
@@ -458,9 +399,7 @@ export default function Sidebar({
                       <li>
                         <a
                           onClick={() => onLineStyleChange?.("straight")}
-                          className={
-                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
-                          }
+                          className={themeClasses.dropdownItem(isDark)}
                         >
                           Straight
                         </a>
@@ -468,31 +407,9 @@ export default function Sidebar({
                       <li>
                         <a
                           onClick={() => onLineStyleChange?.("smoothstep")}
-                          className={
-                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
-                          }
+                          className={themeClasses.dropdownItem(isDark)}
                         >
                           Smooth Step
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("step")}
-                          className={
-                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
-                          }
-                        >
-                          Step
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("bezier")}
-                          className={
-                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
-                          }
-                        >
-                          Bezier
                         </a>
                       </li>
                     </ul>
@@ -533,10 +450,9 @@ export default function Sidebar({
                     📂 Load wordweb
                   </button>
                   <button
-                    className={`
-                    btn btn-error btn-wide btn-sm text-[14px] border
-                    ${isDark ? "border-red-600" : "border-red-300"}
-                  `}
+                    className={`btn btn-error btn-wide btn-sm text-[14px] border ${themeClasses.errorButtonBorder(
+                      isDark
+                    )}`}
                     disabled={isLoading || externalLoading}
                     onClick={onClear}
                   >

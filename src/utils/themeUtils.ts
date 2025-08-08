@@ -87,4 +87,58 @@ export const themeClasses = {
       "text-gray-300 hover:text-red-300"
     ) +
     " text-sm leading-none cursor-pointer transition-colors duration-200 font-bold",
+
+  // Tab navigation
+  tabContainer: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "border-zinc-600 bg-zinc-900/50",
+      "border-gray-200 bg-gray-50"
+    ) + " border rounded-lg p-1 mt-4 mb-4",
+
+  tabButton: (isDark: boolean, isActive: boolean) =>
+    "cursor-pointer flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200 " +
+    (isActive
+      ? getThemeClasses(
+          isDark,
+          "bg-blue-600 text-white shadow-sm border border-blue-500",
+          "bg-white text-blue-600 shadow-sm border border-blue-200"
+        )
+      : getThemeClasses(
+          isDark,
+          "text-gray-400 hover:text-gray-200 hover:bg-zinc-800",
+          "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
+        )),
+
+  // Error and alert styling
+  errorContainer: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "bg-red-900/30 text-red-200 border border-red-800",
+      "bg-red-50 text-red-800 border border-red-200"
+    ) + " p-2 rounded-lg text-sm mb-2",
+
+  errorIcon: () => "text-red-500 font-bold",
+
+  errorButtonBorder: (isDark: boolean) =>
+    getThemeClasses(isDark, "border-red-600", "border-red-300"),
+
+  // Dropdown styling
+  dropdownButton: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "bg-zinc-800 border-zinc-600 text-gray-200 hover:bg-zinc-700",
+      "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+    ) + " btn btn-sm w-full justify-between text-sm border",
+
+  dropdownMenu: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "bg-zinc-800 border-zinc-600 text-gray-200",
+      "bg-white border-gray-300 text-gray-700"
+    ) +
+    " dropdown-content menu rounded-box z-[1] w-full p-2 shadow-lg mt-1 text-sm font-semibold border",
+
+  dropdownItem: (isDark: boolean) =>
+    getThemeClasses(isDark, "hover:bg-zinc-700", "hover:bg-gray-100"),
 };
