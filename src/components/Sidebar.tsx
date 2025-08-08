@@ -338,16 +338,7 @@ export default function Sidebar({
 
             {/* Tab Content */}
             {activeTab === "main" && (
-              <div
-                className={`
-              border rounded-lg p-4 space-y-4
-              ${
-                isDark
-                  ? "border-zinc-600 bg-zinc-900/30"
-                  : "border-gray-200 bg-gray-50/50"
-              }
-            `}
-              >
+              <div className={themeClasses.contentPanel(isDark)}>
                 {/* Line style selector */}
                 <div>
                   <label
@@ -418,82 +409,58 @@ export default function Sidebar({
 
                 {/* Action buttons */}
                 <div
-                  className={`
-                border-t pt-4 space-y-2
-                ${isDark ? "border-zinc-600" : "border-gray-200"}
-              `}
+                  className={`border-t pt-4 space-y-2 ${themeClasses.border(
+                    isDark
+                  )}`}
                 >
                   <div
-                    className={`text-xs font-semibold mb-3 ${
-                      isDark ? "text-gray-400" : "text-gray-600"
-                    }`}
+                    className={`text-xs font-semibold mb-3 ${themeClasses.mutedText(
+                      isDark
+                    )}`}
                   >
                     Wordweb Actions
                   </div>
                   <button
-                    className={`
-                    btn btn-primary btn-wide btn-sm text-[14px] border
-                    ${isDark ? "border-blue-600" : "border-blue-300"}
-                  `}
+                    className={themeClasses.actionButton(isDark, "primary")}
                     disabled={isLoading || externalLoading}
                     onClick={onSave}
                   >
-                    💾 Save wordweb
+                    <span>💾</span>
+                    <span>Save wordweb</span>
                   </button>
                   <button
-                    className={`
-                  btn btn-accent btn-wide btn-sm text-[14px] border
-                  ${isDark ? "border-teal-600" : "border-teal-300"}
-                `}
+                    className={themeClasses.actionButton(isDark, "accent")}
                     disabled={isLoading || externalLoading}
                   >
-                    📂 Load wordweb
+                    <span>📂</span>
+                    <span>Load wordweb</span>
                   </button>
                   <button
-                    className={`btn btn-error btn-wide btn-sm text-[14px] border ${themeClasses.errorButtonBorder(
-                      isDark
-                    )}`}
+                    className={themeClasses.actionButton(isDark, "error")}
                     disabled={isLoading || externalLoading}
                     onClick={onClear}
                   >
-                    🗑️ Clear
+                    <span>🗑️</span>
+                    <span>Clear</span>
                   </button>
                 </div>
               </div>
             )}
 
             {activeTab === "settings" && (
-              <div
-                className={`
-              border rounded-lg p-4 space-y-4
-              ${
-                isDark
-                  ? "border-zinc-600 bg-zinc-900/30"
-                  : "border-gray-200 bg-gray-50/50"
-              }
-            `}
-              >
+              <div className={themeClasses.contentPanel(isDark)}>
                 {/* Settings Panel */}
                 <div className="space-y-4">
                   <div
-                    className={`text-sm font-semibold ${
-                      isDark ? "text-gray-300" : "text-gray-700"
-                    }`}
+                    className={`text-sm font-semibold ${themeClasses.secondaryText(
+                      isDark
+                    )}`}
                   >
                     🎛️ Feature Toggles
                   </div>
 
                   {/* Feature toggles section */}
-                  <div
-                    className={`
-                  border rounded-lg p-3 space-y-3
-                  ${
-                    isDark
-                      ? "border-zinc-700 bg-zinc-800/50"
-                      : "border-gray-200 bg-white/80"
-                  }
-                `}
-                  >
+                  <div className={themeClasses.settingsCard(isDark)}>
                     <div className="form-control w-full">
                       <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
                         <input
@@ -561,28 +528,17 @@ export default function Sidebar({
                   </div>
 
                   <div
-                    className={`border-t pt-4 ${
-                      isDark ? "border-zinc-600" : "border-gray-200"
-                    }`}
+                    className={`border-t pt-4 ${themeClasses.border(isDark)}`}
                   >
                     <div
-                      className={`text-sm font-semibold mb-3 ${
-                        isDark ? "text-gray-300" : "text-gray-700"
-                      }`}
+                      className={`text-sm font-semibold mb-3 ${themeClasses.secondaryText(
+                        isDark
+                      )}`}
                     >
                       ⚙️ Advanced
                     </div>
 
-                    <div
-                      className={`
-                    border rounded-lg p-3 space-y-3
-                    ${
-                      isDark
-                        ? "border-zinc-700 bg-zinc-800/50"
-                        : "border-gray-200 bg-white/80"
-                    }
-                  `}
-                    >
+                    <div className={themeClasses.settingsCard(isDark)}>
                       <div className="form-control w-full">
                         <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
                           <input
@@ -628,21 +584,11 @@ export default function Sidebar({
       {/* Minimal toggle button when sidebar is closed */}
       {!open && (
         <button
-          className={`
-            fixed top-4 left-0 z-50 px-3 py-3 rounded-r-lg shadow-lg transition-all duration-200 cursor-pointer text-xl border-r border-t border-b
-            ${
-              isDark
-                ? "bg-zinc-800 text-white hover:bg-zinc-700 border-zinc-600 hover:shadow-zinc-600/50"
-                : "bg-white text-slate-700 hover:bg-slate-50 border-slate-300 hover:shadow-slate-400/50"
-            }
-            hover:px-4 hover:shadow-xl
-          `}
+          className={themeClasses.sidebarToggle(isDark)}
           onClick={() => setOpen(true)}
           aria-label="Open sidebar"
         >
-          <span className="block transform transition-transform duration-200 hover:scale-110">
-            ☰
-          </span>
+          <span className={themeClasses.toggleIcon()}>☰</span>
         </button>
       )}
     </>

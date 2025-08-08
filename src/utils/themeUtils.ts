@@ -38,6 +38,21 @@ export const themeClasses = {
       "border-gray-200 bg-white/80"
     ),
 
+  // Content panel styling
+  contentPanel: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "border-zinc-600 bg-zinc-900/30",
+      "border-gray-200 bg-gray-50/50"
+    ) + " border rounded-lg p-4 space-y-4",
+
+  settingsCard: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "border-zinc-700 bg-zinc-800/50",
+      "border-gray-200 bg-white/80"
+    ) + " border rounded-lg p-3 space-y-3",
+
   // Text variations
   primaryText: (isDark: boolean) =>
     getThemeClasses(isDark, "text-gray-100", "text-slate-800"),
@@ -141,4 +156,57 @@ export const themeClasses = {
 
   dropdownItem: (isDark: boolean) =>
     getThemeClasses(isDark, "hover:bg-zinc-700", "hover:bg-gray-100"),
+
+  // Action button styling
+  actionButton: (isDark: boolean, variant: "primary" | "accent" | "error") => {
+    const baseClasses =
+      "btn btn-wide btn-sm text-[14px] border flex items-center gap-2";
+
+    switch (variant) {
+      case "primary":
+        return (
+          baseClasses +
+          " " +
+          getThemeClasses(
+            isDark,
+            "btn-primary bg-blue-600 hover:bg-blue-700 text-white border-blue-500",
+            "btn-primary bg-blue-600 hover:bg-blue-700 text-white border-blue-400"
+          )
+        );
+      case "accent":
+        return (
+          baseClasses +
+          " " +
+          getThemeClasses(
+            isDark,
+            "btn-accent bg-teal-600 hover:bg-teal-700 text-white border-teal-500",
+            "btn-accent bg-teal-600 hover:bg-teal-700 text-white border-teal-400"
+          )
+        );
+      case "error":
+        return (
+          baseClasses +
+          " " +
+          getThemeClasses(
+            isDark,
+            "btn-error bg-red-600 hover:bg-red-700 text-white border-red-500",
+            "btn-error bg-red-600 hover:bg-red-700 text-white border-red-400"
+          )
+        );
+      default:
+        return baseClasses;
+    }
+  },
+
+  // Sidebar toggle button
+  sidebarToggle: (isDark: boolean) =>
+    getThemeClasses(
+      isDark,
+      "bg-zinc-800 text-white hover:bg-zinc-700 border-zinc-600 hover:shadow-zinc-600/50",
+      "bg-white text-slate-700 hover:bg-slate-50 border-slate-300 hover:shadow-slate-400/50"
+    ) +
+    " fixed top-4 left-0 z-50 px-3 py-3 rounded-r-lg shadow-lg transition-all duration-200 cursor-pointer text-xl border-r border-t border-b hover:px-4 hover:shadow-xl",
+
+  toggleIcon: () =>
+    "block transform transition-transform duration-200 hover:scale-110",
 };
