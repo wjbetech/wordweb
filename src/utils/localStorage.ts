@@ -1,5 +1,6 @@
 // src/utils/localStorage.ts
 import type { Node, Edge } from "reactflow";
+import type { LineStyle } from "../types/common";
 
 export interface GraphState {
   nodes: Node[];
@@ -16,7 +17,15 @@ export interface GraphState {
 
 export interface UserPreferences {
   theme: "light" | "dark";
-  lineStyle: "default" | "straight" | "smoothstep" | "step" | "bezier";
+  lineStyle: LineStyle;
+  sidebarOpen: boolean;
+  recentSearches: string[];
+  tooltipsEnabled: boolean;
+}
+
+// Combined state interface for persistence
+export interface AppState extends GraphState {
+  lineStyle: LineStyle;
   sidebarOpen: boolean;
   recentSearches: string[];
   tooltipsEnabled: boolean;
@@ -25,8 +34,38 @@ export interface UserPreferences {
 const STORAGE_KEYS = {
   GRAPH_STATE: "wordweb_graph_state",
   USER_PREFERENCES: "wordweb_user_preferences",
-  LAST_SAVED: "wordweb_last_saved"
+  LAST_SAVED: "wordweb_last_saved",
+  APP_STATE: "wordweb_app_state",
 } as const;
+
+// Combined app state management
+export const saveAppState = (state: AppState): void => {
+  try {
+    localStorage.setItem(STORAGE_KEYS.APP_STATE, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEYS.LAST_SAVED, new Date().toISOString());
+  } catch (error) {
+    console.error("Failed to save app state:", error);
+  }
+};
+
+export const loadAppState = (): AppState | null => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.APP_STATE);
+    return saved ? JSON.parse(saved) : null;
+  } catch (error) {
+    console.error("Failed to load app state:", error);
+    return null;
+  }
+};
+
+export const clearAppState = (): void => {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.APP_STATE);
+    localStorage.removeItem(STORAGE_KEYS.LAST_SAVED);
+  } catch (error) {
+    console.error("Failed to clear app state:", error);
+  }
+};
 
 // Graph state management
 export const saveGraphState = (state: GraphState): void => {
@@ -60,7 +99,10 @@ export const clearGraphState = (): void => {
 // User preferences management
 export const saveUserPreferences = (preferences: UserPreferences): void => {
   try {
-    localStorage.setItem(STORAGE_KEYS.USER_PREFERENCES, JSON.stringify(preferences));
+    localStorage.setItem(
+      STORAGE_KEYS.USER_PREFERENCES,
+      JSON.stringify(preferences)
+    );
   } catch (error) {
     console.error("Failed to save user preferences:", error);
   }

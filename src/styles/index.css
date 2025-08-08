@@ -71,3 +71,8 @@
 .theme-toggle-bg:checked {
   background-color: var(--toggle-border) !important;
 }
+
+/* Remove cursor pointer from ReactFlow edges */
+.react-flow__edge {
+  cursor: default !important;
+}

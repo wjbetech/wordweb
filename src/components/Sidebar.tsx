@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
 import type { DatamuseWord } from "../types/Datamuse";
-import Spinner from "./Spinner";
+import SearchSection from "./SearchSection";
+import SettingsPanel from "./SettingsPanel";
+import MainPanel from "./MainPanel";
 import { themeClasses } from "../utils/themeUtils";
-
-type LineStyle = "default" | "straight" | "smoothstep";
+import type { LineStyle } from "../types/common";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -49,10 +50,13 @@ export default function Sidebar({
 
   // Tooltip preference state with localStorage persistence
   const [showTooltips, setShowTooltips] = useState(() => {
-    if (tooltipsEnabled !== undefined) return tooltipsEnabled;
+    if (tooltipsEnabled !== undefined) {
+      return tooltipsEnabled;
+    }
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("showTooltips");
-      return stored === null ? true : stored === "true";
+      const result = stored === null ? true : stored === "true";
+      return result;
     }
     return true;
   });
@@ -225,92 +229,18 @@ export default function Sidebar({
               </div>
             )}
 
-            {/* Search input */}
-            <form onSubmit={handleSearch} className="flex gap-2 mb-2">
-              <label className="input input-sm flex-1 flex items-center gap-2">
-                <svg
-                  className="h-[1em] opacity-50"
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                >
-                  <g
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    strokeWidth="2.5"
-                    fill="none"
-                    stroke="currentColor"
-                  >
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <path d="m21 21-4.3-4.3"></path>
-                  </g>
-                </svg>
-                <input
-                  type="search"
-                  className="grow text-sm"
-                  placeholder="Search a word..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  disabled={isLoading || externalLoading}
-                  style={{ fontSize: "14px" }}
-                />
-              </label>
-              <button
-                type="submit"
-                className="btn btn-success btn-sm text-[14px] min-w-[60px] flex items-center justify-center"
-                disabled={isLoading || externalLoading || !searchTerm.trim()}
-              >
-                {isLoading || externalLoading ? (
-                  <Spinner size="sm" className="text-white" />
-                ) : (
-                  "Go"
-                )}
-              </button>
-            </form>
-
-            {/* Recent searches */}
-            {recent.length > 0 && (
-              <div>
-                <div
-                  className={`text-sm mb-2 font-semibold ${themeClasses.mutedText(
-                    isDark
-                  )}`}
-                >
-                  Recent searches:
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {recent.map((term: string) => (
-                    <div
-                      key={term}
-                      className={`${themeClasses.searchTag(isDark)} ${
-                        isLoading || externalLoading
-                          ? "opacity-50 cursor-not-allowed"
-                          : ""
-                      }`}
-                    >
-                      <span
-                        onClick={() => handleRecentSearchClick(term)}
-                        className="select-none"
-                      >
-                        {term}
-                      </span>
-                      <button
-                        onClick={(e) => handleRemoveRecentSearch(term, e)}
-                        disabled={isLoading || externalLoading}
-                        className={`${themeClasses.searchTagRemove(isDark)} ${
-                          isLoading || externalLoading
-                            ? "cursor-not-allowed"
-                            : ""
-                        }`}
-                        aria-label={`Remove ${term} from recent searches`}
-                        title={`Remove ${term}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Search Section */}
+            <SearchSection
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              onSearch={handleSearch}
+              isLoading={isLoading}
+              externalLoading={externalLoading}
+              recent={recent}
+              onRecentSearchClick={handleRecentSearchClick}
+              onRemoveRecentSearch={handleRemoveRecentSearch}
+              isDark={isDark}
+            />
 
             {/* Tab Navigation */}
             <div className={themeClasses.tabContainer(isDark)}>
@@ -360,6 +290,10 @@ export default function Sidebar({
                         ? "Default"
                         : currentLineStyle === "straight"
                         ? "Straight"
+                        : currentLineStyle === "step"
+                        ? "Step"
+                        : currentLineStyle === "bezier"
+                        ? "Bezier"
                         : currentLineStyle}
                       <svg
                         className="w-4 h-4"
@@ -403,177 +337,45 @@ export default function Sidebar({
                           Smooth Step
                         </a>
                       </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("step")}
+                          className={themeClasses.dropdownItem(isDark)}
+                        >
+                          Step
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("bezier")}
+                          className={themeClasses.dropdownItem(isDark)}
+                        >
+                          Bezier
+                        </a>
+                      </li>
                     </ul>
                   </div>
                 </div>
 
                 {/* Action buttons */}
-                <div
-                  className={`border-t pt-4 space-y-2 ${themeClasses.border(
-                    isDark
-                  )}`}
-                >
-                  <div
-                    className={`text-xs font-semibold mb-3 ${themeClasses.mutedText(
-                      isDark
-                    )}`}
-                  >
-                    Wordweb Actions
-                  </div>
-                  <button
-                    className={themeClasses.actionButton(isDark, "primary")}
-                    disabled={isLoading || externalLoading}
-                    onClick={onSave}
-                  >
-                    <span>💾</span>
-                    <span>Save wordweb</span>
-                  </button>
-                  <button
-                    className={themeClasses.actionButton(isDark, "accent")}
-                    disabled={isLoading || externalLoading}
-                  >
-                    <span>📂</span>
-                    <span>Load wordweb</span>
-                  </button>
-                  <button
-                    className={themeClasses.actionButton(isDark, "error")}
-                    disabled={isLoading || externalLoading}
-                    onClick={onClear}
-                  >
-                    <span>🗑️</span>
-                    <span>Clear</span>
-                  </button>
-                </div>
+                <MainPanel
+                  isDark={isDark}
+                  onNewGraph={() => {}} // TODO: Implement
+                  onSaveGraph={onSave || (() => {})}
+                  onLoadGraph={() => {}} // TODO: Implement
+                  onClearGraph={onClear || (() => {})}
+                  onToggleHelp={() => {}} // TODO: Implement
+                  onToggleAbout={() => {}} // TODO: Implement
+                />
               </div>
             )}
 
             {activeTab === "settings" && (
-              <div className={themeClasses.contentPanel(isDark)}>
-                {/* Settings Panel */}
-                <div className="space-y-4">
-                  <div
-                    className={`text-sm font-semibold ${themeClasses.secondaryText(
-                      isDark
-                    )}`}
-                  >
-                    🎛️ Feature Toggles
-                  </div>
-
-                  {/* Feature toggles section */}
-                  <div className={themeClasses.settingsCard(isDark)}>
-                    <div className="form-control w-full">
-                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                        <input
-                          type="checkbox"
-                          className={`
-                        toggle toggle-sm flex-shrink-0
-                        ${isDark ? "toggle-primary" : "toggle-success"}
-                      `}
-                          checked={showTooltips}
-                          onChange={(e) => setShowTooltips(e.target.checked)}
-                        />
-                        <span className={themeClasses.toggleLabel(isDark)}>
-                          Show tooltips
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="form-control w-full">
-                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                        <input
-                          type="checkbox"
-                          className={`
-                        toggle toggle-sm flex-shrink-0
-                        ${isDark ? "toggle-primary" : "toggle-success"}
-                      `}
-                          disabled
-                        />
-                        <span className={themeClasses.toggleLabel(isDark)}>
-                          Auto-save progress
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="form-control w-full">
-                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                        <input
-                          type="checkbox"
-                          className={`
-                        toggle toggle-sm flex-shrink-0
-                        ${isDark ? "toggle-primary" : "toggle-success"}
-                      `}
-                          disabled
-                        />
-                        <span className={themeClasses.toggleLabel(isDark)}>
-                          Sound effects
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="form-control w-full">
-                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                        <input
-                          type="checkbox"
-                          className={`
-                        toggle toggle-sm flex-shrink-0
-                        ${isDark ? "toggle-primary" : "toggle-success"}
-                      `}
-                          disabled
-                        />
-                        <span className={themeClasses.toggleLabel(isDark)}>
-                          Animations
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div
-                    className={`border-t pt-4 ${themeClasses.border(isDark)}`}
-                  >
-                    <div
-                      className={`text-sm font-semibold mb-3 ${themeClasses.secondaryText(
-                        isDark
-                      )}`}
-                    >
-                      ⚙️ Advanced
-                    </div>
-
-                    <div className={themeClasses.settingsCard(isDark)}>
-                      <div className="form-control w-full">
-                        <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                          <input
-                            type="checkbox"
-                            className={`
-                          toggle toggle-sm flex-shrink-0
-                          ${isDark ? "toggle-warning" : "toggle-warning"}
-                        `}
-                            disabled
-                          />
-                          <span className={themeClasses.toggleLabel(isDark)}>
-                            Debug mode
-                          </span>
-                        </label>
-                      </div>
-
-                      <div className="form-control w-full">
-                        <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
-                          <input
-                            type="checkbox"
-                            className={`
-                          toggle toggle-sm flex-shrink-0
-                          ${isDark ? "toggle-info" : "toggle-info"}
-                        `}
-                            disabled
-                          />
-                          <span className={themeClasses.toggleLabel(isDark)}>
-                            Performance mode
-                          </span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <SettingsPanel
+                isDark={isDark}
+                showTooltips={showTooltips}
+                setShowTooltips={setShowTooltips}
+              />
             )}
           </div>{" "}
           {/* End scrollable content */}

@@ -2,16 +2,15 @@
 import { useEffect, useCallback } from "react";
 import type { Node, Edge } from "reactflow";
 import {
-  saveGraphState,
-  loadGraphState,
-  clearGraphState,
   saveUserPreferences,
-  type GraphState,
+  saveAppState,
+  loadAppState,
+  clearAppState,
   type UserPreferences,
-  isStorageAvailable
+  type AppState,
+  isStorageAvailable,
 } from "../utils/localStorage";
-
-type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
+import type { LineStyle } from "../types/common";
 
 interface UsePersistenceProps {
   nodes: Node[];
@@ -29,7 +28,7 @@ interface UsePersistenceProps {
 
 interface UsePersistenceReturn {
   saveCurrentState: () => void;
-  loadSavedState: () => GraphState | null;
+  loadSavedState: () => AppState | null;
   clearSavedState: () => void;
   isStorageSupported: boolean;
 }
@@ -45,28 +44,44 @@ export const usePersistence = ({
   lineStyle,
   sidebarOpen,
   recentSearches,
-  tooltipsEnabled
+  tooltipsEnabled,
 }: UsePersistenceProps): UsePersistenceReturn => {
   const isStorageSupported = isStorageAvailable();
 
-  // Auto-save graph state when it changes (debounced)
+  // Auto-save app state when it changes (debounced)
   useEffect(() => {
     if (!isStorageSupported || nodes.length === 0) return;
 
     const timeoutId = setTimeout(() => {
-      const graphState: GraphState = {
+      const appState: AppState = {
         nodes,
         edges,
         expandedNodes: Array.from(expandedNodes),
         usedWords: Array.from(usedWords),
         viewport,
-        centerWord
+        centerWord,
+        lineStyle,
+        sidebarOpen,
+        recentSearches,
+        tooltipsEnabled,
       };
-      saveGraphState(graphState);
+      saveAppState(appState);
     }, 1000); // Debounce saves by 1 second
 
     return () => clearTimeout(timeoutId);
-  }, [nodes, edges, expandedNodes, usedWords, viewport, centerWord, isStorageSupported]);
+  }, [
+    nodes,
+    edges,
+    expandedNodes,
+    usedWords,
+    viewport,
+    centerWord,
+    lineStyle,
+    sidebarOpen,
+    recentSearches,
+    tooltipsEnabled,
+    isStorageSupported,
+  ]);
 
   // Auto-save user preferences when they change
   useEffect(() => {
@@ -77,39 +92,62 @@ export const usePersistence = ({
       lineStyle,
       sidebarOpen,
       recentSearches,
-      tooltipsEnabled
+      tooltipsEnabled,
     };
     saveUserPreferences(preferences);
-  }, [isDark, lineStyle, sidebarOpen, recentSearches, tooltipsEnabled, isStorageSupported]);
+  }, [
+    isDark,
+    lineStyle,
+    sidebarOpen,
+    recentSearches,
+    tooltipsEnabled,
+    isStorageSupported,
+  ]);
 
   const saveCurrentState = useCallback(() => {
     if (!isStorageSupported) return;
 
-    const graphState: GraphState = {
+    const appState: AppState = {
       nodes,
       edges,
       expandedNodes: Array.from(expandedNodes),
       usedWords: Array.from(usedWords),
       viewport,
-      centerWord
+      centerWord,
+      lineStyle,
+      sidebarOpen,
+      recentSearches,
+      tooltipsEnabled,
     };
-    saveGraphState(graphState);
-  }, [nodes, edges, expandedNodes, usedWords, viewport, centerWord, isStorageSupported]);
+    saveAppState(appState);
+  }, [
+    nodes,
+    edges,
+    expandedNodes,
+    usedWords,
+    viewport,
+    centerWord,
+    lineStyle,
+    sidebarOpen,
+    recentSearches,
+    tooltipsEnabled,
+    isStorageSupported,
+  ]);
 
   const loadSavedState = useCallback(() => {
     if (!isStorageSupported) return null;
-    return loadGraphState();
+    return loadAppState();
   }, [isStorageSupported]);
 
   const clearSavedState = useCallback(() => {
     if (!isStorageSupported) return;
-    clearGraphState();
+    clearAppState();
   }, [isStorageSupported]);
 
   return {
     saveCurrentState,
     loadSavedState,
     clearSavedState,
-    isStorageSupported
+    isStorageSupported,
   };
 };

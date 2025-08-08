@@ -1,5 +1,10 @@
 import { useState, useCallback, useEffect } from "react";
-import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  useReactFlow,
+  BackgroundVariant,
+} from "reactflow";
 import ColoredNode from "./ColoredNode";
 import type { Node, Edge, NodeMouseHandler } from "reactflow";
 import Sidebar from "./Sidebar";
@@ -11,11 +16,11 @@ import { searchDatamuse } from "../api/datamuse";
 import type { DatamuseWord } from "../types/Datamuse";
 import { useColorPalette } from "../hooks/useColorPalette";
 import { usePersistence } from "../hooks/usePersistence";
+import { useNodePositioning } from "../hooks/useNodePositioning";
 import { loadUserPreferences } from "../utils/localStorage";
+import type { LineStyle } from "../types/common";
 
 const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
-
-type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
 type WordWebFlowProps = {
   isDark: boolean;
@@ -42,7 +47,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   });
   const [tooltipsEnabled, setTooltipsEnabled] = useState(() => {
     const savedPrefs = loadUserPreferences();
-    return savedPrefs?.tooltipsEnabled !== undefined ? savedPrefs.tooltipsEnabled : true;
+    return savedPrefs?.tooltipsEnabled !== undefined
+      ? savedPrefs.tooltipsEnabled
+      : true;
   });
   const [recentSearches, setRecentSearches] = useState<string[]>(() => {
     const savedPrefs = loadUserPreferences();
@@ -58,11 +65,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     nodeId: string;
     isVisible: boolean;
     isPinned: boolean;
+    justUnpinned?: boolean;
   }>({
     word: "",
     nodeId: "",
     isVisible: false,
-    isPinned: false
+    isPinned: false,
+    justUnpinned: false,
   });
 
   // Force tooltip re-renders when viewport changes
@@ -70,6 +79,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
+  const { findNonOverlappingPosition } = useNodePositioning();
 
   // Get current viewport for persistence
   const viewport = reactFlow.getViewport();
@@ -86,7 +96,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     lineStyle,
     sidebarOpen,
     recentSearches,
-    tooltipsEnabled
+    tooltipsEnabled,
   });
 
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
@@ -118,8 +128,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           style: {
             ...edge.style,
             stroke: edgeColor,
-            strokeWidth: 1.5
-          }
+            strokeWidth: 1.5,
+          },
         }))
       );
 
@@ -136,8 +146,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         style: {
           ...edge.style,
           stroke: edgeColor,
-          strokeWidth: 1.5
-        }
+          strokeWidth: 1.5,
+        },
       }))
     );
   }, [edgeColor]);
@@ -179,7 +189,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   // Clear tooltips when disabled
   useEffect(() => {
     if (!tooltipsEnabled && tooltipData.isVisible) {
-      setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }));
+      setTooltipData((prev) => ({
+        ...prev,
+        isVisible: false,
+        isPinned: false,
+      }));
     }
   }, [tooltipsEnabled, tooltipData.isVisible]);
 
@@ -189,121 +203,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       setTooltipUpdate((prev) => prev + 1);
     }
   }, [tooltipData.isVisible, tooltipData.isPinned]);
-
-  // Helper: check if a position is too close to any node
-  const isOverlapping = useCallback((x: number, y: number, nodes: Node[], minDist = 180) => {
-    return nodes.some((n) => {
-      const dx = n.position.x - x;
-      const dy = n.position.y - y;
-      return Math.sqrt(dx * dx + dy * dy) < minDist;
-    });
-  }, []);
-
-  // Helper: Find a non-overlapping position using spiral placement if random fails
-  const findNonOverlappingPosition = useCallback(
-    (startX: number, startY: number, baseRadius: number, depth: number, spreadStep: number, placed: Node[]) => {
-      const minDist = 180;
-
-      // For initial layer (depth 1), use evenly distributed angles with some randomness
-      if (depth === 1) {
-        const nodeIndex = placed.length - 1; // Subtract 1 to account for center node
-        const totalNodes = 8; // We typically place up to 8 nodes
-        const baseAngle = (nodeIndex * 2 * Math.PI) / totalNodes;
-        const angleVariation = (Math.PI / 6) * (Math.random() - 0.5); // ±30 degrees variation
-        const angle = baseAngle + angleVariation;
-
-        const radiusVariation = Math.random() * 60 - 30; // ±30px variation
-        const radius = baseRadius + radiusVariation;
-
-        const x = startX + radius * Math.cos(angle);
-        const y = startY + radius * Math.sin(angle);
-
-        // Ensure it doesn't overlap
-        if (!isOverlapping(x, y, placed, minDist)) {
-          return { x, y };
-        }
-      }
-
-      // For deeper layers or fallback, use directional placement away from parent
-      const existingNodes = placed.filter((n) => n.position.x !== startX || n.position.y !== startY);
-
-      // Calculate direction away from center and existing nodes
-      let preferredAngle = Math.atan2(startY - center.y, startX - center.x); // Direction from center
-
-      // If there are nearby nodes, avoid their directions
-      const nearbyNodes = existingNodes.filter((n) => {
-        const dx = n.position.x - startX;
-        const dy = n.position.y - startY;
-        return Math.sqrt(dx * dx + dy * dy) < baseRadius * 2;
-      });
-
-      if (nearbyNodes.length > 0) {
-        const avoidAngles = nearbyNodes.map((n) => {
-          const dx = n.position.x - startX;
-          const dy = n.position.y - startY;
-          return Math.atan2(dy, dx);
-        });
-
-        // Find the largest gap between avoid angles
-        let maxGap = 0;
-        let bestAngle = preferredAngle;
-
-        for (let testAngle = 0; testAngle < 2 * Math.PI; testAngle += Math.PI / 12) {
-          let minDistance = Math.PI;
-          for (const avoidAngle of avoidAngles) {
-            let angleDiff = Math.abs(testAngle - avoidAngle);
-            if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
-            minDistance = Math.min(minDistance, angleDiff);
-          }
-          if (minDistance > maxGap) {
-            maxGap = minDistance;
-            bestAngle = testAngle;
-          }
-        }
-        preferredAngle = bestAngle;
-      }
-
-      // Try positions in a cone around the preferred direction
-      const coneRange = Math.PI / 3; // 60-degree cone
-      const numTries = 16; // More attempts for better placement
-
-      for (let i = 0; i < numTries; i++) {
-        const angleOffset = coneRange * (Math.random() - 0.5); // Random within cone
-        const angle = preferredAngle + angleOffset;
-
-        // Add more radius variation
-        const radiusJitter = Math.random() * 80 - 40; // ±40px variation
-        const radius = baseRadius + (depth - 1) * spreadStep + radiusJitter;
-
-        const x = startX + radius * Math.cos(angle);
-        const y = startY + radius * Math.sin(angle);
-
-        if (!isOverlapping(x, y, placed, minDist)) {
-          return { x, y };
-        }
-      }
-
-      // Final fallback - spiral outward
-      for (let r = baseRadius; r < baseRadius * 3; r += 30) {
-        for (let a = 0; a < 2 * Math.PI; a += Math.PI / 8) {
-          const x = startX + r * Math.cos(a);
-          const y = startY + r * Math.sin(a);
-
-          if (!isOverlapping(x, y, placed, minDist)) {
-            return { x, y };
-          }
-        }
-      }
-
-      // Absolute fallback
-      const fallbackRadius = baseRadius + (depth - 1) * spreadStep + 200;
-      return {
-        x: startX + fallbackRadius * Math.cos(preferredAngle),
-        y: startY + fallbackRadius * Math.sin(preferredAngle)
-      };
-    },
-    [isOverlapping]
-  );
 
   // Handler to create a word web
   const createWordWeb = useCallback(
@@ -322,7 +221,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       reactFlow.setViewport({
         x: 0,
         y: 0,
-        zoom: 1
+        zoom: 1,
       });
 
       try {
@@ -337,10 +236,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             label: searchWord,
             depth: 0,
             color: colors[0],
-            isExpanded: false
+            isExpanded: false,
           },
           position: { x: center.x, y: center.y },
-          type: "colored"
+          type: "colored",
         };
 
         setNodes([centerNode]);
@@ -353,7 +252,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           const depth = 1;
           const placed: Node[] = [centerNode];
           const relatedNodes: Node[] = related.slice(0, 8).map((wordData) => {
-            const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+            const position = findNonOverlappingPosition(
+              center.x,
+              center.y,
+              baseRadius,
+              depth,
+              spreadStep,
+              placed
+            );
             const node = {
               id: `related-${searchWord}-${wordData.word}`,
               data: {
@@ -362,10 +268,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
                 color: colors[depth % colors.length],
                 isExpanded: false,
                 score: wordData.score,
-                tags: wordData.tags
+                tags: wordData.tags,
               },
               position,
-              type: "colored" as const
+              type: "colored" as const,
             };
             placed.push(node);
             return node;
@@ -375,7 +281,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           // Add related words to usedWords set
           setUsedWords((prev) => {
             const newSet = new Set(prev);
-            related.slice(0, 8).forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
+            related
+              .slice(0, 8)
+              .forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
             return newSet;
           });
 
@@ -385,10 +293,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             target: n.id,
             style: {
               stroke: edgeColor,
-              strokeWidth: 1.5
+              strokeWidth: 1.5,
             },
             type: lineStyle,
-            animated: false
+            animated: false,
           }));
           setEdges(initialEdges);
 
@@ -397,7 +305,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             reactFlow.fitView({
               nodes: [centerNode, ...relatedNodes],
               duration: 800,
-              padding: 0.15 // Add 15% padding around the nodes for better visibility
+              padding: 0.15, // Add 15% padding around the nodes for better visibility
             });
           }, 100); // Small delay to ensure nodes are rendered
         }, 500);
@@ -425,7 +333,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           // Collapse - remove all child nodes and edges recursively
           const getAllDescendantIds = (nodeId: string): Set<string> => {
             const descendants = new Set<string>();
-            const directChildren = nodes.filter((n) => n.id.startsWith(`expanded-${nodeId}-`));
+            const directChildren = nodes.filter((n) =>
+              n.id.startsWith(`expanded-${nodeId}-`)
+            );
 
             for (const child of directChildren) {
               descendants.add(child.id);
@@ -439,7 +349,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
           // Remove nodes and edges
           setNodes((prev) => prev.filter((n) => !allDescendantIds.has(n.id)));
-          setEdges((prev) => prev.filter((e) => !allDescendantIds.has(e.source) && !allDescendantIds.has(e.target)));
+          setEdges((prev) =>
+            prev.filter(
+              (e) =>
+                !allDescendantIds.has(e.source) &&
+                !allDescendantIds.has(e.target)
+            )
+          );
 
           // Update expanded state for this node and all descendants
           setExpandedNodes((prev) => {
@@ -451,26 +367,38 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
           // Update the node's visual state
           setNodes((prev) =>
-            prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: false } } : n))
+            prev.map((n) =>
+              n.id === node.id
+                ? { ...n, data: { ...n.data, isExpanded: false } }
+                : n
+            )
           );
         } else {
           // Set loading state
           setLoadingNodes((prev) => new Set([...prev, node.id]));
 
           // Update the node to show loading state
-          setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: true } } : n)));
+          setNodes((prev) =>
+            prev.map((n) =>
+              n.id === node.id
+                ? { ...n, data: { ...n.data, isLoading: true } }
+                : n
+            )
+          );
 
           try {
             // Add artificial delay for better UX feedback (minimum 600ms)
             const [results] = await Promise.all([
               searchDatamuse(node.data.label),
-              new Promise((resolve) => setTimeout(resolve, 600))
+              new Promise((resolve) => setTimeout(resolve, 600)),
             ]);
 
             const related = results.slice(0, 4);
 
             // Filter out words that have already been used anywhere in the web
-            const uniqueRelated = related.filter((wordData) => !usedWords.has(wordData.word.toLowerCase()));
+            const uniqueRelated = related.filter(
+              (wordData) => !usedWords.has(wordData.word.toLowerCase())
+            );
 
             // Check if we have any unique words to show
             if (uniqueRelated.length === 0) {
@@ -480,7 +408,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
               // Reset node state
               setNodes((prev) =>
-                prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n))
+                prev.map((n) =>
+                  n.id === node.id
+                    ? { ...n, data: { ...n.data, isLoading: false } }
+                    : n
+                )
               );
 
               // Remove from loading state
@@ -516,10 +448,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
                   color: colors[depth % colors.length],
                   isExpanded: false,
                   score: wordData.score,
-                  tags: wordData.tags
+                  tags: wordData.tags,
                 },
                 position,
-                type: "colored" as const
+                type: "colored" as const,
               };
               placed.push(n);
               return n;
@@ -532,10 +464,10 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               target: n.id,
               style: {
                 stroke: edgeColor,
-                strokeWidth: 1.5
+                strokeWidth: 1.5,
               },
               type: lineStyle,
-              animated: false
+              animated: false,
             }));
 
             setNodes((prev) => [...prev, ...newNodes]);
@@ -544,7 +476,9 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             // Add new words to usedWords set
             setUsedWords((prev) => {
               const newSet = new Set(prev);
-              uniqueRelated.forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
+              uniqueRelated.forEach((wordData) =>
+                newSet.add(wordData.word.toLowerCase())
+              );
               return newSet;
             });
 
@@ -554,7 +488,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             // Update the node's visual state (remove loading, set expanded)
             setNodes((prev) =>
               prev.map((n) =>
-                n.id === node.id ? { ...n, data: { ...n.data, isExpanded: true, isLoading: false } } : n
+                n.id === node.id
+                  ? {
+                      ...n,
+                      data: { ...n.data, isExpanded: true, isLoading: false },
+                    }
+                  : n
               )
             );
 
@@ -566,7 +505,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
             // Reset node state on error
             setNodes((prev) =>
-              prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n))
+              prev.map((n) =>
+                n.id === node.id
+                  ? { ...n, data: { ...n.data, isLoading: false } }
+                  : n
+              )
             );
           } finally {
             // Remove from loading state
@@ -579,7 +522,17 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }
       }
     },
-    [nodes, expandedNodes, loadingNodes, colors, findNonOverlappingPosition, lineStyle, edgeColor, reactFlow, usedWords]
+    [
+      nodes,
+      expandedNodes,
+      loadingNodes,
+      colors,
+      findNonOverlappingPosition,
+      lineStyle,
+      edgeColor,
+      reactFlow,
+      usedWords,
+    ]
   );
 
   // Manual save/load/clear functions
@@ -642,15 +595,25 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     <>
       <div
         className="fixed inset-0 flex items-center justify-center overflow-hidden pointer-events-none"
-        style={{ zIndex: 1 }}>
-        <div className="text-5xl font-bold opacity-10 select-none" style={{ color: isDark ? "#ece2c7" : "#374151" }}>
+        style={{ zIndex: 1 }}
+      >
+        <div
+          className="text-5xl font-bold opacity-10 select-none"
+          style={{ color: isDark ? "#ece2c7" : "#374151" }}
+        >
           wordweb.
         </div>
       </div>
 
-      {isInitialLoading && <LoadingOverlay isDark={isDark} message="Generating word web..." />}
+      {isInitialLoading && (
+        <LoadingOverlay isDark={isDark} message="Generating word web..." />
+      )}
 
-      <Toast message="Line style updated!" isVisible={isUpdatingLineStyle} isDark={isDark} />
+      <Toast
+        message="Line style updated!"
+        isVisible={isUpdatingLineStyle}
+        isDark={isDark}
+      />
 
       <ReactFlow
         nodes={nodes}
@@ -676,23 +639,26 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         defaultEdgeOptions={{
           style: { stroke: edgeColor, strokeWidth: 1.5 },
           type: lineStyle,
-          animated: false
+          animated: false,
         }}
         edgesFocusable={true}
         elementsSelectable={true}
         nodesConnectable={false}
         onNodeMouseEnter={(_, node) => {
           // Only show tooltip on hover if tooltips enabled and not pinned
-          if (tooltipsEnabled && !tooltipData.isPinned) {
-            setTooltipData({
-              word: node.data.label,
-              score: node.data.score,
-              tags: node.data.tags,
-              nodeId: node.id,
-              isVisible: true,
-              isPinned: false
-            });
+          if (!tooltipsEnabled || tooltipData.isPinned) {
+            return;
           }
+
+          setTooltipData({
+            word: node.data.label,
+            score: node.data.score,
+            tags: node.data.tags,
+            nodeId: node.id,
+            isVisible: true,
+            isPinned: false,
+            justUnpinned: false,
+          });
         }}
         onNodeMouseLeave={() => {
           // Only hide on mouse leave if not pinned and tooltips enabled
@@ -702,13 +668,32 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }}
         onNodeContextMenu={(event, node) => {
           // Right-click to pin/unpin tooltip (only if tooltips enabled)
-          if (!tooltipsEnabled) return;
+          if (!tooltipsEnabled) {
+            return;
+          }
 
           event.preventDefault();
+          event.stopPropagation();
 
-          // If clicking the same node that's already pinned, unpin it
+          // If clicking the same node that's already pinned, unpin it but keep visible
           if (tooltipData.isPinned && tooltipData.word === node.data.label) {
-            setTooltipData((prev) => ({ ...prev, isPinned: false, isVisible: false }));
+            setTooltipData((prev) => ({
+              ...prev,
+              isPinned: false,
+              isVisible: true, // Keep visible, just unpinned
+              justUnpinned: false, // Don't need the justUnpinned flag anymore
+            }));
+
+            // After a brief delay, check if mouse is still over the node and hide if needed
+            setTimeout(() => {
+              setTooltipData((prev) => {
+                // Only hide if still unpinned and for the same word
+                if (!prev.isPinned && prev.word === node.data.label) {
+                  return { ...prev, isVisible: false };
+                }
+                return prev;
+              });
+            }, 100); // Short delay to allow for natural mouse movement
           } else {
             // Pin the tooltip for this node
             setTooltipData({
@@ -717,10 +702,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               tags: node.data.tags,
               nodeId: node.id,
               isVisible: true,
-              isPinned: true
+              isPinned: true,
             });
           }
-        }}>
+        }}
+      >
         <Background
           color={isDark ? "#374151" : "#ddd"}
           variant={BackgroundVariant.Lines}
@@ -783,7 +769,13 @@ Try expanding a different word or start a new word web to continue discovering c
         isVisible={tooltipsEnabled && tooltipData.isVisible}
         isPinned={tooltipData.isPinned}
         isDark={isDark}
-        onClose={() => setTooltipData((prev) => ({ ...prev, isVisible: false, isPinned: false }))}
+        onClose={() =>
+          setTooltipData((prev) => ({
+            ...prev,
+            isVisible: false,
+            isPinned: false,
+          }))
+        }
       />
     </>
   );

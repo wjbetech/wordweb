@@ -166,10 +166,11 @@
 
 ### Enhanced Customization & Control
 
-- [ ] **Tooltip Toggle System**: Allow users to disable/enable tooltips to reduce visual clutter
-  - Settings panel toggle for tooltip visibility
-  - User preference persistence in localStorage
-  - Smooth transition states when toggling on/off
+- [x] **Tooltip Toggle System**: Allow users to disable/enable tooltips to reduce visual clutter ✅
+  - [x] Settings panel toggle for tooltip visibility
+  - [x] User preference persistence in localStorage
+  - [x] Smooth transition states when toggling on/off
+  - [ ] **TODO: Refine tooltip auto-hide behavior** - Currently tooltips after unpinning don't auto-hide smoothly on mouse out. Need to improve the timing and interaction between hover/pin states for more intuitive UX.
 - [ ] **Relevance Filtering**: Enable minimum relevance threshold for word generation
   - Slider control for relevance score requirements (e.g., only "Very Strong" connections)
   - Dynamic filtering based on Datamuse API score values
