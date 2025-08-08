@@ -107,7 +107,7 @@ export default function Sidebar({
     }
   }, [showTooltips, onTooltipToggle, tooltipsEnabled]);
 
-  // Handle search
+  // Handle search (single-term)
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const combinedLoading = isLoading || externalLoading;
@@ -134,13 +134,11 @@ export default function Sidebar({
 
     // Call Datamuse API and trigger word web
     try {
-      // Add artificial delay for better UX feedback (minimum 800ms)
       const [results] = await Promise.all([
         searchDatamuse(searchTerm),
         new Promise((resolve) => setTimeout(resolve, 800)),
       ]);
 
-      // Get 5-8 related words (or less if not enough)
       const related = results.slice(0, 8);
       if (onSearch) await onSearch(searchTerm, related);
     } catch (err) {
@@ -152,7 +150,7 @@ export default function Sidebar({
 
   // Handle removing a search term from recent searches
   function handleRemoveRecentSearch(termToRemove: string, e: React.MouseEvent) {
-    e.stopPropagation(); // Prevent triggering the search when clicking delete
+    e.stopPropagation();
     const combinedLoading = isLoading || externalLoading;
     if (combinedLoading) return;
 
@@ -340,12 +338,12 @@ export default function Sidebar({
                 {/* Action buttons */}
                 <MainPanel
                   isDark={isDark}
-                  onNewGraph={() => {}} // TODO: Implement
+                  onNewGraph={() => {}}
                   onSaveGraph={onSave || (() => {})}
-                  onLoadGraph={() => {}} // TODO: Implement
+                  onLoadGraph={() => {}}
                   onClearGraph={onClear || (() => {})}
-                  onToggleHelp={() => {}} // TODO: Implement
-                  onToggleAbout={() => {}} // TODO: Implement
+                  onToggleHelp={() => {}}
+                  onToggleAbout={() => {}}
                 />
               </div>
             )}
@@ -357,10 +355,8 @@ export default function Sidebar({
                 setShowTooltips={setShowTooltips}
               />
             )}
-          </div>{" "}
-          {/* End scrollable content */}
-        </div>{" "}
-        {/* End scrollable container */}
+          </div>
+        </div>
       </div>
 
       {/* Minimal toggle button when sidebar is closed */}

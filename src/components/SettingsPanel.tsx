@@ -43,6 +43,7 @@ export default function SettingsPanel({
             </label>
           </div>
 
+          {/* Placeholder features */}
           <div className="form-control w-full">
             <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
               <input
