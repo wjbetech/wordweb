@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { loadUserPreferences } from "../utils/localStorage";
 
 /**
@@ -6,6 +6,40 @@ import { loadUserPreferences } from "../utils/localStorage";
  * Handles sidebar state, tooltips, recent searches, etc.
  */
 export const useUserPreferences = () => {
+  // Cleanup deprecated localStorage keys/fields
+  useEffect(() => {
+    try {
+      if (typeof window === "undefined") return;
+
+      // Remove standalone key if it exists
+      localStorage.removeItem("dualWordMode");
+
+      // Strip deprecated field from stored user preferences
+      const UP_KEY = "wordweb_user_preferences";
+      const upRaw = localStorage.getItem(UP_KEY);
+      if (upRaw) {
+        const up = JSON.parse(upRaw);
+        if (up && Object.prototype.hasOwnProperty.call(up, "dualWordMode")) {
+          delete up.dualWordMode;
+          localStorage.setItem(UP_KEY, JSON.stringify(up));
+        }
+      }
+
+      // Strip deprecated field from stored app state
+      const APP_KEY = "wordweb_app_state";
+      const appRaw = localStorage.getItem(APP_KEY);
+      if (appRaw) {
+        const app = JSON.parse(appRaw);
+        if (app && Object.prototype.hasOwnProperty.call(app, "dualWordMode")) {
+          delete app.dualWordMode;
+          localStorage.setItem(APP_KEY, JSON.stringify(app));
+        }
+      }
+    } catch {
+      // no-op
+    }
+  }, []);
+
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     const savedPrefs = loadUserPreferences();
     return savedPrefs?.sidebarOpen ?? false;

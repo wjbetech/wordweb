@@ -36,7 +36,6 @@
   - Right-click context menus for custom actions
   - Drag nodes for custom layouts
   - Lock/delete individual nodes
-- **Dual Input Support**: Primary word + optional focus word for niche exploration
 - **Random Discovery**: "Surprise me" functionality for creative exploration
 - **Persistent State**: localStorage integration with future project save/load
 - **Export Options**: PDF, PNG, SVG export capabilities
@@ -174,7 +173,6 @@
 - [x] **Advanced Tooltip System**: Pinnable tooltips with score and tag information
 - [x] **Recent Search Management**: Track and manage recent searches with delete functionality
 - [ ] **Random Word Search**: "Surprise me" functionality for discovery
-- [ ] **Dual-Word Input**: Second word for niche/focused exploration
 - [ ] **Export Options**: Save to PDF, PNG, SVG formats
 - [x] **Advanced Node States**: Visual indicators for expanded/used states
 
@@ -191,7 +189,6 @@
 - [x] **Advanced Tooltip System**: Pinnable tooltips with score and tag information
 - [x] **Recent Search Management**: Track and manage recent searches with delete functionality
 - [ ] **Random Word Search**: "Surprise me" functionality for discovery
-- [ ] **Dual-Word Input**: Second word for niche/focused exploration
 - [ ] **Export Options**: Save to PDF, PNG, SVG formats
 - [x] **Advanced Node States**: Visual indicators for expanded/used states
 - [ ] **Return to Core Word**: Generate a button at the top of the screen that when pressed, returns the user to their core word
@@ -234,15 +231,10 @@
   - [x] Settings panel toggle for tooltip visibility
   - [x] User preference persistence in localStorage
   - [x] Smooth transition states when toggling on/off
-  - [ ] **TODO: Refine tooltip auto-hide behavior** - Currently tooltips after unpinning don't auto-hide smoothly on mouse out. Need to improve the timing and interaction between hover/pin states for more intuitive UX.
 - [ ] **Relevance Filtering**: Enable minimum relevance threshold for word generation
   - Slider control for relevance score requirements (e.g., only "Very Strong" connections)
   - Dynamic filtering based on Datamuse API score values
   - Visual indicators showing current relevance level
-- [ ] **Advanced Search Refinement**: Secondary input field for search narrowing
-  - Optional second search term to further focus results (e.g., "technology" + "healthcare")
-  - Combination search logic for more targeted word discovery
-  - Real-time filtering of existing nodes based on secondary criteria
 
 ### Export & Sharing Ecosystem
 

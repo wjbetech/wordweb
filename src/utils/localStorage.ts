@@ -118,6 +118,72 @@ export const loadUserPreferences = (): UserPreferences | null => {
   }
 };
 
+// Named saves
+const NAMED_SAVES_KEY = "wordweb_named_saves";
+
+export interface NamedSaveMeta {
+  name: string;
+  savedAt: string; // ISO string
+  centerWord?: string;
+  nodeCount: number;
+  edgeCount: number;
+  lineStyle: LineStyle;
+}
+
+type NamedSavesStore = Record<string, { savedAt: string; state: AppState }>;
+
+const loadNamedSavesStore = (): NamedSavesStore => {
+  try {
+    const raw = localStorage.getItem(NAMED_SAVES_KEY);
+    return raw ? (JSON.parse(raw) as NamedSavesStore) : {};
+  } catch (e) {
+    console.error("Failed to load named saves store:", e);
+    return {};
+  }
+};
+
+const saveNamedSavesStore = (store: NamedSavesStore) => {
+  try {
+    localStorage.setItem(NAMED_SAVES_KEY, JSON.stringify(store));
+  } catch (e) {
+    console.error("Failed to save named saves store:", e);
+  }
+};
+
+export const saveNamedAppState = (name: string, state: AppState): void => {
+  const store = loadNamedSavesStore();
+  store[name] = { savedAt: new Date().toISOString(), state };
+  saveNamedSavesStore(store);
+};
+
+export const listNamedAppStates = (): NamedSaveMeta[] => {
+  const store = loadNamedSavesStore();
+  return Object.entries(store)
+    .map(([name, entry]) => ({
+      name,
+      savedAt: entry.savedAt,
+      centerWord: entry.state.centerWord,
+      nodeCount: entry.state.nodes?.length ?? 0,
+      edgeCount: entry.state.edges?.length ?? 0,
+      lineStyle: entry.state.lineStyle,
+    }))
+    .sort((a, b) => (a.savedAt < b.savedAt ? 1 : -1));
+};
+
+export const loadNamedAppState = (name: string): AppState | null => {
+  const store = loadNamedSavesStore();
+  const entry = store[name];
+  return entry ? entry.state : null;
+};
+
+export const deleteNamedAppState = (name: string): void => {
+  const store = loadNamedSavesStore();
+  if (store[name]) {
+    delete store[name];
+    saveNamedSavesStore(store);
+  }
+};
+
 // Utility functions
 export const getLastSavedTime = (): string | null => {
   try {

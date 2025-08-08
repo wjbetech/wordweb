@@ -7,6 +7,15 @@ import SettingsPanel from "./SettingsPanel";
 import MainPanel from "./MainPanel";
 import { themeClasses } from "../utils/themeUtils";
 import type { LineStyle } from "../types/common";
+import LoadModal from "./LoadModal";
+import SaveModal from "./SaveModal";
+import {
+  listNamedAppStates,
+  saveNamedAppState,
+  loadNamedAppState,
+  deleteNamedAppState,
+  type AppState,
+} from "../utils/localStorage";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -16,7 +25,6 @@ type SidebarProps = {
   isDark?: boolean;
   isLoading?: boolean;
   error?: string | null;
-  onSave?: () => void;
   onClear?: () => void;
   recentSearches?: string[];
   onRecentSearchesChange?: (searches: string[]) => void;
@@ -36,7 +44,6 @@ export default function Sidebar({
   isDark = false,
   isLoading: externalLoading = false,
   error = null,
-  onSave,
   onClear,
   recentSearches: externalRecentSearches = [],
   onRecentSearchesChange,
@@ -87,6 +94,11 @@ export default function Sidebar({
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Load modal state
+  const [showLoadModal, setShowLoadModal] = useState(false);
+  const [saves, setSaves] = useState(() => listNamedAppStates());
+  const [showSaveModal, setShowSaveModal] = useState(false);
+
   // Sync sidebar state with external handler
   useEffect(() => {
     if (onSidebarToggle && externalSidebarOpen !== open) {
@@ -106,6 +118,11 @@ export default function Sidebar({
       localStorage.setItem("showTooltips", showTooltips.toString());
     }
   }, [showTooltips, onTooltipToggle, tooltipsEnabled]);
+
+  // Refresh saves list when modals open
+  useEffect(() => {
+    if (showLoadModal || showSaveModal) setSaves(listNamedAppStates());
+  }, [showLoadModal, showSaveModal]);
 
   // Handle search (single-term)
   async function handleSearch(e: React.FormEvent) {
@@ -172,6 +189,58 @@ export default function Sidebar({
     const combinedLoading = isLoading || externalLoading;
     if (combinedLoading) return;
     setSearchTerm(term);
+  }
+
+  function openLoadModal() {
+    setSaves(listNamedAppStates());
+    setShowLoadModal(true);
+  }
+
+  function closeLoadModal() {
+    setShowLoadModal(false);
+  }
+
+  function handleLoadNamed(name: string) {
+    const state = loadNamedAppState(name);
+    if (!state) return;
+    // Write selection into main app_state so WordWebFlow loader picks it up on refresh
+    try {
+      localStorage.setItem("wordweb_app_state", JSON.stringify(state));
+      localStorage.setItem("wordweb_last_saved", new Date().toISOString());
+      // Simple approach: reload to apply across ReactFlow
+      location.reload();
+    } catch (e) {
+      console.error("Failed to load named app state", e);
+    }
+  }
+
+  function handleDeleteNamed(name: string) {
+    deleteNamedAppState(name);
+    setSaves(listNamedAppStates());
+  }
+
+  function openSaveModal() {
+    setShowSaveModal(true);
+  }
+  function closeSaveModal() {
+    setShowSaveModal(false);
+  }
+
+  // Save current app snapshot with a provided name
+  function handleSaveNamed(name: string) {
+    try {
+      const current = localStorage.getItem("wordweb_app_state");
+      if (!current) {
+        alert("Nothing to save. Create a word web first.");
+        return;
+      }
+      const state = JSON.parse(current) as AppState;
+      saveNamedAppState(name, state);
+      setSaves(listNamedAppStates());
+      setShowSaveModal(false);
+    } catch (e) {
+      console.error("Failed to save named app state", e);
+    }
   }
 
   return (
@@ -339,8 +408,8 @@ export default function Sidebar({
                 <MainPanel
                   isDark={isDark}
                   onNewGraph={() => {}}
-                  onSaveGraph={onSave || (() => {})}
-                  onLoadGraph={() => {}}
+                  onSaveGraph={openSaveModal}
+                  onLoadGraph={openLoadModal}
                   onClearGraph={onClear || (() => {})}
                   onToggleHelp={() => {}}
                   onToggleAbout={() => {}}
@@ -369,6 +438,25 @@ export default function Sidebar({
           <span className={themeClasses.toggleIcon()}>☰</span>
         </button>
       )}
+
+      {/* Load Modal */}
+      <LoadModal
+        isOpen={showLoadModal}
+        isDark={isDark}
+        saves={saves}
+        onClose={closeLoadModal}
+        onLoad={handleLoadNamed}
+        onDelete={handleDeleteNamed}
+      />
+
+      {/* Save Modal */}
+      <SaveModal
+        isOpen={showSaveModal}
+        isDark={isDark}
+        existingNames={saves.map((s) => s.name)}
+        onClose={closeSaveModal}
+        onSave={handleSaveNamed}
+      />
     </>
   );
 }
