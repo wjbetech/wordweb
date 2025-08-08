@@ -83,7 +83,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const viewport = reactFlow.getViewport();
 
   // Initialize persistence hook
-  const { saveCurrentState, loadSavedState, clearSavedState } = usePersistence({
+  const { loadSavedState, clearSavedState } = usePersistence({
     nodes,
     edges,
     expandedNodes,
@@ -226,11 +226,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   }, [forceTooltipUpdate]);
 
   // Manual save/load/clear functions
-  const handleSaveWordweb = useCallback(() => {
-    saveCurrentState();
-    // You could show a toast notification here
-  }, [saveCurrentState]);
-
   const handleClearWordweb = useCallback(() => {
     openConfirmModal();
   }, [openConfirmModal]);
@@ -455,7 +450,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onThemeChange={onThemeChange}
         isLoading={isInitialLoading}
         error={error}
-        onSave={handleSaveWordweb}
         onClear={handleClearWordweb}
         recentSearches={recentSearches}
         onRecentSearchesChange={setRecentSearches}
