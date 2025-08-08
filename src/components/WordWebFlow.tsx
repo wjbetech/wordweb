@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Background,
   Controls,
@@ -21,6 +21,8 @@ import { useNodeInteraction } from "../hooks/useNodeInteraction";
 import { useWordWebCreation } from "../hooks/useWordWebCreation";
 import { loadUserPreferences } from "../utils/localStorage";
 import type { LineStyle } from "../types/common";
+import * as htmlToImage from "html-to-image";
+import { jsPDF } from "jspdf";
 
 type WordWebFlowProps = {
   isDark: boolean;
@@ -40,6 +42,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [centerWord, setCenterWord] = useState<string>("");
 
   const reactFlow = useReactFlow();
+  const flowWrapperRef = useRef<HTMLDivElement | null>(null);
   const {
     tooltipData,
     showTooltip,
@@ -292,6 +295,68 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     hideTooltip,
   ]);
 
+  // Export current graph to PDF (fits all nodes, captures canvas, embeds PNG in PDF)
+  const handleExportPDF = useCallback(async () => {
+    try {
+      // Close any tooltip overlays
+      closeTooltip();
+
+      // Save current viewport
+      const prevViewport = reactFlow.getViewport();
+
+      // Fit all nodes into view for export
+      if (nodes.length > 0) {
+        reactFlow.fitView({ padding: 0.2 });
+        // wait a tick for layout to settle
+        await new Promise((r) => setTimeout(r, 150));
+      }
+
+      const element = flowWrapperRef.current;
+      if (!element) return;
+
+      const backgroundColor = isDark ? "#1f2937" : "#faf0e6";
+      const dataUrl = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor,
+        cacheBust: true,
+      });
+
+      // Measure image to preserve aspect ratio in PDF
+      const img = new Image();
+      const { width, height } = await new Promise<{
+        width: number;
+        height: number;
+      }>((resolve, reject) => {
+        img.onload = () => resolve({ width: img.width, height: img.height });
+        img.onerror = reject;
+        img.src = dataUrl;
+      });
+
+      const orientation = width > height ? "l" : "p";
+      const doc = new jsPDF({ orientation, unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const maxW = pageWidth - margin * 2;
+      const maxH = pageHeight - margin * 2;
+      const ratio = Math.min(maxW / width, maxH / height);
+      const printW = width * ratio;
+      const printH = height * ratio;
+      const x = (pageWidth - printW) / 2;
+      const y = (pageHeight - printH) / 2;
+
+      doc.addImage(dataUrl, "PNG", x, y, printW, printH);
+      const ts = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 19);
+      const filename = `wordweb-${centerWord || "export"}-${ts}.pdf`;
+      doc.save(filename);
+
+      // Restore viewport
+      reactFlow.setViewport(prevViewport);
+    } catch (e) {
+      console.error("Export PDF failed", e);
+    }
+  }, [reactFlow, nodes.length, isDark, centerWord, closeTooltip]);
+
   const nodeTypes = { colored: ColoredNode };
 
   return (
@@ -352,96 +417,99 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         isDark={isDark}
       />
 
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        fitView
-        minZoom={0.5}
-        maxZoom={2}
-        className={canvasBg + " w-full h-full"}
-        style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
-        onNodeClick={onNodeClick}
-        onMove={handleViewportChange}
-        onWheel={(event) => {
-          if (!event.ctrlKey) {
-            // Allow regular scroll only when Ctrl is pressed
-            const { deltaY } = event;
-            const zoom = reactFlow.getZoom();
-            const newZoom = deltaY > 0 ? zoom * 0.9 : zoom * 1.1;
-            reactFlow.zoomTo(Math.min(Math.max(newZoom, 0.5), 2));
-            event.preventDefault();
-          }
-        }}
-        defaultEdgeOptions={{
-          style: { stroke: edgeColor, strokeWidth: 1.5 },
-          type: lineStyle,
-          animated: false,
-        }}
-        edgesFocusable={true}
-        elementsSelectable={true}
-        nodesConnectable={false}
-        onNodeMouseEnter={(_, node) => {
-          // Only show tooltip on hover if tooltips enabled and not pinned
-          if (!tooltipsEnabled || tooltipData.isPinned) {
-            return;
-          }
+      <div ref={flowWrapperRef} className="w-full h-full">
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          fitView
+          minZoom={0.5}
+          maxZoom={2}
+          className={canvasBg + " w-full h-full"}
+          style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
+          onNodeClick={onNodeClick}
+          onMove={handleViewportChange}
+          onWheel={(event) => {
+            if (!event.ctrlKey) {
+              // Allow regular scroll only when Ctrl is pressed
+              const { deltaY } = event;
+              const zoom = reactFlow.getZoom();
+              const newZoom = deltaY > 0 ? zoom * 0.9 : zoom * 1.1;
+              reactFlow.zoomTo(Math.min(Math.max(newZoom, 0.5), 2));
+              event.preventDefault();
+            }
+          }}
+          defaultEdgeOptions={{
+            style: { stroke: edgeColor, strokeWidth: 1.5 },
+            type: lineStyle,
+            animated: false,
+          }}
+          edgesFocusable={true}
+          elementsSelectable={true}
+          nodesConnectable={false}
+          onNodeMouseEnter={(_, node) => {
+            // Only show tooltip on hover if tooltips enabled and not pinned
+            if (!tooltipsEnabled || tooltipData.isPinned) {
+              return;
+            }
 
-          showTooltip({
-            word: node.data.label,
-            score: node.data.score,
-            tags: node.data.tags,
-            nodeId: node.id,
-          });
-        }}
-        onNodeMouseLeave={() => {
-          // Only hide on mouse leave if not pinned and tooltips enabled
-          if (tooltipsEnabled && !tooltipData.isPinned) {
-            hideTooltip();
-          }
-        }}
-        onNodeContextMenu={(event, node) => {
-          // Right-click to pin/unpin tooltip (only if tooltips enabled)
-          if (!tooltipsEnabled) {
-            return;
-          }
-
-          event.preventDefault();
-          event.stopPropagation();
-
-          // If clicking the same node that's already pinned, unpin it but keep visible
-          if (tooltipData.isPinned && tooltipData.word === node.data.label) {
-            unpinTooltip();
-
-            // After a brief delay, check if mouse is still over the node and hide if needed
-            setTimeout(() => {
-              if (
-                !tooltipData.isPinned &&
-                tooltipData.word === node.data.label
-              ) {
-                hideTooltip();
-              }
-            }, 100); // Short delay to allow for natural mouse movement
-          } else {
-            // Pin the tooltip for this node
-            pinTooltip({
+            showTooltip({
               word: node.data.label,
               score: node.data.score,
               tags: node.data.tags,
               nodeId: node.id,
             });
-          }
-        }}
-      >
-        <Background
-          color={isDark ? "#374151" : "#ddd"}
-          variant={BackgroundVariant.Lines}
-          gap={20}
-          offset={1}
-          style={{ backgroundColor: "transparent" }}
-        />
-        <Controls />
-      </ReactFlow>
+          }}
+          onNodeMouseLeave={() => {
+            // Only hide on mouse leave if not pinned and tooltips enabled
+            if (tooltipsEnabled && !tooltipData.isPinned) {
+              hideTooltip();
+            }
+          }}
+          onNodeContextMenu={(event, node) => {
+            // Right-click to pin/unpin tooltip (only if tooltips enabled)
+            if (!tooltipsEnabled) {
+              return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            // If clicking the same node that's already pinned, unpin it but keep visible
+            if (tooltipData.isPinned && tooltipData.word === node.data.label) {
+              unpinTooltip();
+
+              // After a brief delay, check if mouse is still over the node and hide if needed
+              setTimeout(() => {
+                if (
+                  !tooltipData.isPinned &&
+                  tooltipData.word === node.data.label
+                ) {
+                  hideTooltip();
+                }
+              }, 100); // Short delay to allow for natural mouse movement
+            } else {
+              // Pin the tooltip for this node
+              pinTooltip({
+                word: node.data.label,
+                score: node.data.score,
+                tags: node.data.tags,
+                nodeId: node.id,
+              });
+            }
+          }}
+        >
+          <Background
+            color={isDark ? "#374151" : "#ddd"}
+            variant={BackgroundVariant.Lines}
+            gap={20}
+            offset={1}
+            style={{ backgroundColor: "transparent" }}
+          />
+          <Controls />
+        </ReactFlow>
+      </div>
+
       <Sidebar
         onSearch={createWordWeb}
         onLineStyleChange={updateLineStyle}
@@ -457,29 +525,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onSidebarToggle={setSidebarOpen}
         tooltipsEnabled={tooltipsEnabled}
         onTooltipToggle={setTooltipsEnabled}
-        onExportPNG={() => {
-          /* TODO: implement */
-        }}
-        onExportSVG={() => {
-          /* TODO: implement */
-        }}
-        onExportPDF={() => {
-          /* TODO: implement */
-        }}
-        onExportJSON={() => {
-          /* TODO: implement */
-        }}
-        onImportJSON={() => {
-          /* TODO: implement */
-        }}
+        onExportPDF={handleExportPDF}
       />
 
       <ConfirmModal
         isOpen={showConfirmModal}
         title="Clear Word Web"
-        message="Are you sure you want to clear the current word web?
-
-This will remove all nodes and edges, and cannot be undone."
+        message="Are you sure you want to clear the current word web?\n\nThis will remove all nodes and edges, and cannot be undone."
         confirmText="Clear"
         cancelText="Cancel"
         confirmButtonClass="btn-error"
@@ -491,9 +543,7 @@ This will remove all nodes and edges, and cannot be undone."
       <ConfirmModal
         isOpen={showNoUniqueWordsModal}
         title="No More Unique Words"
-        message={`All related words for "${lastClickedWord}" have already been explored in this word web.
-
-Try expanding a different word or start a new word web to continue discovering connections.`}
+        message={`All related words for "${lastClickedWord}" have already been explored in this word web.\n\nTry expanding a different word or start a new word web to continue discovering connections.`}
         confirmText="Got it"
         cancelText=""
         confirmButtonClass="btn-primary"
