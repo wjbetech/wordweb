@@ -72,6 +72,19 @@
 - **Performance**: Optimize for smooth interactions and fast load times
 - **Accessibility**: Ensure inclusive design from the start
 
+### Code Modularization & Maintenance
+
+- **Regular Refactoring**: Periodically review codebase for modularization opportunities
+- **File Size Management**: Keep components under ~400 lines; break into smaller, focused modules when exceeded
+- **DRY Principles**: Eliminate code duplication, extract common patterns into reusable utilities
+- **Clean Architecture**: Ensure code is readable, maintainable, and follows consistent patterns
+- **Style Consistency**:
+  - Consolidate redundant styling definitions (e.g., background colors scattered across files)
+  - Centralize theme-related styles and remove unused/conflicting styles
+  - Extract repeated style patterns into utility functions or CSS classes
+- **Component Extraction**: Break large components into focused sub-components with clear responsibilities
+- **Utility Extraction**: Move shared logic into dedicated utility functions and custom hooks
+
 ### User Experience
 
 - **Progressive Enhancement**: Core functionality works without JavaScript

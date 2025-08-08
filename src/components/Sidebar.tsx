@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { searchDatamuse } from "../api/datamuse";
 import type { DatamuseWord } from "../types/Datamuse";
 import Spinner from "./Spinner";
+import { themeClasses } from "../utils/themeUtils";
 
 type LineStyle = "default" | "straight" | "smoothstep" | "step" | "bezier";
 
@@ -41,7 +42,7 @@ export default function Sidebar({
   sidebarOpen: externalSidebarOpen,
   onSidebarToggle,
   onTooltipToggle,
-  tooltipsEnabled = true
+  tooltipsEnabled = true,
 }: SidebarProps) {
   // Tab state
   const [activeTab, setActiveTab] = useState<"main" | "settings">("main");
@@ -112,12 +113,18 @@ export default function Sidebar({
 
     // Add to recent searches through external handler or fallback
     if (onRecentSearchesChange) {
-      const updated = [searchTerm, ...externalRecentSearches.filter((t: string) => t !== searchTerm)].slice(0, 8);
+      const updated = [
+        searchTerm,
+        ...externalRecentSearches.filter((t: string) => t !== searchTerm),
+      ].slice(0, 8);
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
       const current = stored ? JSON.parse(stored) : [];
-      const updated = [searchTerm, ...current.filter((t: string) => t !== searchTerm)].slice(0, 8);
+      const updated = [
+        searchTerm,
+        ...current.filter((t: string) => t !== searchTerm),
+      ].slice(0, 8);
       localStorage.setItem("recentSearches", JSON.stringify(updated));
     }
 
@@ -126,7 +133,7 @@ export default function Sidebar({
       // Add artificial delay for better UX feedback (minimum 800ms)
       const [results] = await Promise.all([
         searchDatamuse(searchTerm),
-        new Promise((resolve) => setTimeout(resolve, 800))
+        new Promise((resolve) => setTimeout(resolve, 800)),
       ]);
 
       // Get 5-8 related words (or less if not enough)
@@ -146,7 +153,9 @@ export default function Sidebar({
     if (combinedLoading) return;
 
     if (onRecentSearchesChange) {
-      const updated = externalRecentSearches.filter((term: string) => term !== termToRemove);
+      const updated = externalRecentSearches.filter(
+        (term: string) => term !== termToRemove
+      );
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
@@ -171,114 +180,166 @@ export default function Sidebar({
           open ? "left-3" : "left-0"
         } h-[70vh] w-64 rounded-xl shadow-xl p-3 z-20 transform transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
-        } ${isDark ? "bg-zinc-800" : "bg-slate-50 border-slate-300 border shadow-lg"}`}
+        } ${themeClasses.sidebarBg(isDark)}`}
         style={{
-          fontFamily: "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
-          fontWeight: 500
-        }}>
+          fontFamily:
+            "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          fontWeight: 500,
+        }}
+      >
         {/* Header controls */}
         <div className="absolute top-3 left-0 right-3 flex justify-between items-center px-3">
           <button
-            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer z-50 text-2xl bg-transparent focus:outline-none ${
-              isDark ? "text-white hover:bg-[#4c5c68]" : "text-slate-700 hover:bg-slate-200"
-            }`}
+            className={`px-2 py-1 rounded-lg transition-colors cursor-pointer z-50 text-2xl bg-transparent focus:outline-none ${themeClasses.buttonHover(
+              isDark
+            )}`}
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
-            aria-label="Close sidebar">
+            aria-label="Close sidebar"
+          >
             ←
           </button>
-          <ThemeToggle isDark={isDark} onToggle={() => onThemeChange?.(!isDark)} />
+          <ThemeToggle
+            isDark={isDark}
+            onToggle={() => onThemeChange?.(!isDark)}
+          />
         </div>
-        <div className="mt-12 flex flex-col gap-3">
-          <h2 className={`text-base font-bold ${isDark ? "text-gray-100" : "text-slate-800"}`}>wordweb. Controls</h2>
-
-          {/* Error message */}
-          {error && (
-            <div
-              className={`p-2 rounded-lg text-sm mb-2 ${
+        {/* Scrollable content area */}
+        <div className="mt-12 h-[calc(100%-3rem)] overflow-y-auto overflow-x-hidden">
+          <div className="flex flex-col gap-3 pr-1">
+            <h2
+              className={`text-base font-bold ${themeClasses.primaryText(
                 isDark
-                  ? "bg-red-900/30 text-red-200 border border-red-800"
-                  : "bg-red-50 text-red-800 border border-red-200"
-              }`}>
-              <div className="flex items-start gap-2">
-                <span className="text-red-500 font-bold">⚠</span>
-                <span>{error}</span>
-              </div>
-            </div>
-          )}
+              )}`}
+            >
+              wordweb. Controls
+            </h2>
 
-          {/* Search input */}
-          <form onSubmit={handleSearch} className="flex gap-2 mb-2">
-            <label className="input input-sm flex-1 flex items-center gap-2">
-              <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <path d="m21 21-4.3-4.3"></path>
-                </g>
-              </svg>
-              <input
-                type="search"
-                className="grow text-sm"
-                placeholder="Search a word..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                disabled={isLoading || externalLoading}
-                style={{ fontSize: "14px" }}
-              />
-            </label>
-            <button
-              type="submit"
-              className="btn btn-success btn-sm text-[14px] min-w-[60px] flex items-center justify-center"
-              disabled={isLoading || externalLoading || !searchTerm.trim()}>
-              {isLoading || externalLoading ? <Spinner size="sm" className="text-white" /> : "Go"}
-            </button>
-          </form>
-
-          {/* Recent searches */}
-          {recent.length > 0 && (
-            <div>
-              <div className={`text-sm mb-2 font-semibold ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                Recent searches:
+            {/* Error message */}
+            {error && (
+              <div
+                className={`p-2 rounded-lg text-sm mb-2 ${
+                  isDark
+                    ? "bg-red-900/30 text-red-200 border border-red-800"
+                    : "bg-red-50 text-red-800 border border-red-200"
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-red-500 font-bold">⚠</span>
+                  <span>{error}</span>
+                </div>
               </div>
-              <div className="flex flex-wrap gap-1">
-                {recent.map((term: string) => (
-                  <div
-                    key={term}
-                    className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity ${
-                      isLoading || externalLoading ? "opacity-50 cursor-not-allowed" : ""
-                    } ${
-                      isDark
-                        ? "bg-zinc-700 text-gray-200 hover:bg-zinc-600"
-                        : "bg-zinc-600 text-white hover:bg-zinc-700"
-                    }`}>
-                    <span onClick={() => handleRecentSearchClick(term)} className="select-none">
-                      {term}
-                    </span>
-                    <button
-                      onClick={(e) => handleRemoveRecentSearch(term, e)}
-                      disabled={isLoading || externalLoading}
-                      className={`text-sm leading-none cursor-pointer transition-colors duration-200 font-bold ${
-                        isLoading || externalLoading ? "cursor-not-allowed" : ""
-                      } ${isDark ? "text-gray-400 hover:text-red-400" : "text-gray-300 hover:text-red-300"}`}
-                      aria-label={`Remove ${term} from recent searches`}
-                      title={`Remove ${term}`}>
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            )}
 
-          {/* Tab Navigation */}
-          <div
-            className={`
-            border rounded-lg p-1 mt-4 mb-4
-            ${isDark ? "border-zinc-600 bg-zinc-900/50" : "border-gray-200 bg-gray-50"}
-          `}>
-            <div className="flex gap-1">
+            {/* Search input */}
+            <form onSubmit={handleSearch} className="flex gap-2 mb-2">
+              <label className="input input-sm flex-1 flex items-center gap-2">
+                <svg
+                  className="h-[1em] opacity-50"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                >
+                  <g
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    strokeWidth="2.5"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.3-4.3"></path>
+                  </g>
+                </svg>
+                <input
+                  type="search"
+                  className="grow text-sm"
+                  placeholder="Search a word..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={isLoading || externalLoading}
+                  style={{ fontSize: "14px" }}
+                />
+              </label>
               <button
-                className={`
+                type="submit"
+                className="btn btn-success btn-sm text-[14px] min-w-[60px] flex items-center justify-center"
+                disabled={isLoading || externalLoading || !searchTerm.trim()}
+              >
+                {isLoading || externalLoading ? (
+                  <Spinner size="sm" className="text-white" />
+                ) : (
+                  "Go"
+                )}
+              </button>
+            </form>
+
+            {/* Recent searches */}
+            {recent.length > 0 && (
+              <div>
+                <div
+                  className={`text-sm mb-2 font-semibold ${
+                    isDark ? "text-gray-400" : "text-gray-600"
+                  }`}
+                >
+                  Recent searches:
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {recent.map((term: string) => (
+                    <div
+                      key={term}
+                      className={`relative rounded px-2 py-1 text-xs cursor-pointer flex items-center gap-2 transition-opacity ${
+                        isLoading || externalLoading
+                          ? "opacity-50 cursor-not-allowed"
+                          : ""
+                      } ${
+                        isDark
+                          ? "bg-zinc-700 text-gray-200 hover:bg-zinc-600"
+                          : "bg-zinc-600 text-white hover:bg-zinc-700"
+                      }`}
+                    >
+                      <span
+                        onClick={() => handleRecentSearchClick(term)}
+                        className="select-none"
+                      >
+                        {term}
+                      </span>
+                      <button
+                        onClick={(e) => handleRemoveRecentSearch(term, e)}
+                        disabled={isLoading || externalLoading}
+                        className={`text-sm leading-none cursor-pointer transition-colors duration-200 font-bold ${
+                          isLoading || externalLoading
+                            ? "cursor-not-allowed"
+                            : ""
+                        } ${
+                          isDark
+                            ? "text-gray-400 hover:text-red-400"
+                            : "text-gray-300 hover:text-red-300"
+                        }`}
+                        aria-label={`Remove ${term} from recent searches`}
+                        title={`Remove ${term}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tab Navigation */}
+            <div
+              className={`
+            border rounded-lg p-1 mt-4 mb-4
+            ${
+              isDark
+                ? "border-zinc-600 bg-zinc-900/50"
+                : "border-gray-200 bg-gray-50"
+            }
+          `}
+            >
+              <div className="flex gap-1">
+                <button
+                  className={`
                    cursor-pointer flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200
                   ${
                     activeTab === "main"
@@ -294,11 +355,12 @@ export default function Sidebar({
                         }`
                   }
                 `}
-                onClick={() => setActiveTab("main")}>
-                Main
-              </button>
-              <button
-                className={`
+                  onClick={() => setActiveTab("main")}
+                >
+                  Main
+                </button>
+                <button
+                  className={`
                   cursor-pointer flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all duration-200
                   ${
                     activeTab === "settings"
@@ -314,266 +376,345 @@ export default function Sidebar({
                         }`
                   }
                 `}
-                onClick={() => setActiveTab("settings")}>
-                Settings
-              </button>
+                  onClick={() => setActiveTab("settings")}
+                >
+                  Settings
+                </button>
+              </div>
             </div>
-          </div>
 
-          {/* Tab Content */}
-          {activeTab === "main" && (
-            <div
-              className={`
+            {/* Tab Content */}
+            {activeTab === "main" && (
+              <div
+                className={`
               border rounded-lg p-4 space-y-4
-              ${isDark ? "border-zinc-600 bg-zinc-900/30" : "border-gray-200 bg-gray-50/50"}
-            `}>
-              {/* Line style selector */}
-              <div>
-                <label className={`block text-sm mb-2 font-semibold ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                  Line Style
-                </label>
-                <div className="dropdown dropdown-bottom w-full">
-                  <div
-                    tabIndex={0}
-                    role="button"
-                    className={`
+              ${
+                isDark
+                  ? "border-zinc-600 bg-zinc-900/30"
+                  : "border-gray-200 bg-gray-50/50"
+              }
+            `}
+              >
+                {/* Line style selector */}
+                <div>
+                  <label
+                    className={`block text-sm mb-2 font-semibold ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    Line Style
+                  </label>
+                  <div className="dropdown dropdown-bottom w-full">
+                    <div
+                      tabIndex={0}
+                      role="button"
+                      className={`
                     btn btn-sm w-full justify-between text-sm border
                     ${
                       isDark
                         ? "bg-zinc-800 border-zinc-600 text-gray-200 hover:bg-zinc-700"
                         : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                     }
-                  `}>
-                    {currentLineStyle === "smoothstep"
-                      ? "Smooth Step"
-                      : currentLineStyle === "default"
-                      ? "Default"
-                      : currentLineStyle === "straight"
-                      ? "Straight"
-                      : currentLineStyle === "step"
-                      ? "Step"
-                      : currentLineStyle === "bezier"
-                      ? "Bezier"
-                      : currentLineStyle}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                  <ul
-                    tabIndex={0}
-                    className={`
+                  `}
+                    >
+                      {currentLineStyle === "smoothstep"
+                        ? "Smooth Step"
+                        : currentLineStyle === "default"
+                        ? "Default"
+                        : currentLineStyle === "straight"
+                        ? "Straight"
+                        : currentLineStyle === "step"
+                        ? "Step"
+                        : currentLineStyle === "bezier"
+                        ? "Bezier"
+                        : currentLineStyle}
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </div>
+                    <ul
+                      tabIndex={0}
+                      className={`
                       dropdown-content menu rounded-box z-[1] w-full p-2 shadow-lg mt-1 text-sm font-semibold border
-                      ${isDark ? "bg-zinc-800 border-zinc-600 text-gray-200" : "bg-white border-gray-300 text-gray-700"}
-                    `}>
-                    <li>
-                      <a
-                        onClick={() => onLineStyleChange?.("default")}
-                        className={isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"}>
-                        Default
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        onClick={() => onLineStyleChange?.("straight")}
-                        className={isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"}>
-                        Straight
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        onClick={() => onLineStyleChange?.("smoothstep")}
-                        className={isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"}>
-                        Smooth Step
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        onClick={() => onLineStyleChange?.("step")}
-                        className={isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"}>
-                        Step
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        onClick={() => onLineStyleChange?.("bezier")}
-                        className={isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"}>
-                        Bezier
-                      </a>
-                    </li>
-                  </ul>
+                      ${
+                        isDark
+                          ? "bg-zinc-800 border-zinc-600 text-gray-200"
+                          : "bg-white border-gray-300 text-gray-700"
+                      }
+                    `}
+                    >
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("default")}
+                          className={
+                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
+                          }
+                        >
+                          Default
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("straight")}
+                          className={
+                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
+                          }
+                        >
+                          Straight
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("smoothstep")}
+                          className={
+                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
+                          }
+                        >
+                          Smooth Step
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("step")}
+                          className={
+                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
+                          }
+                        >
+                          Step
+                        </a>
+                      </li>
+                      <li>
+                        <a
+                          onClick={() => onLineStyleChange?.("bezier")}
+                          className={
+                            isDark ? "hover:bg-zinc-700" : "hover:bg-gray-100"
+                          }
+                        >
+                          Bezier
+                        </a>
+                      </li>
+                    </ul>
+                  </div>
                 </div>
-              </div>
 
-              {/* Action buttons */}
-              <div
-                className={`
+                {/* Action buttons */}
+                <div
+                  className={`
                 border-t pt-4 space-y-2
                 ${isDark ? "border-zinc-600" : "border-gray-200"}
-              `}>
-                <div className={`text-xs font-semibold mb-3 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                  Wordweb Actions
-                </div>
-                <button
-                  className={`
+              `}
+                >
+                  <div
+                    className={`text-xs font-semibold mb-3 ${
+                      isDark ? "text-gray-400" : "text-gray-600"
+                    }`}
+                  >
+                    Wordweb Actions
+                  </div>
+                  <button
+                    className={`
                     btn btn-primary btn-wide btn-sm text-[14px] border
                     ${isDark ? "border-blue-600" : "border-blue-300"}
                   `}
-                  disabled={isLoading || externalLoading}
-                  onClick={onSave}>
-                  💾 Save wordweb
-                </button>
-                <button
-                  className={`
+                    disabled={isLoading || externalLoading}
+                    onClick={onSave}
+                  >
+                    💾 Save wordweb
+                  </button>
+                  <button
+                    className={`
                   btn btn-accent btn-wide btn-sm text-[14px] border
                   ${isDark ? "border-teal-600" : "border-teal-300"}
                 `}
-                  disabled={isLoading || externalLoading}>
-                  📂 Load wordweb
-                </button>
-                <button
-                  className={`
+                    disabled={isLoading || externalLoading}
+                  >
+                    📂 Load wordweb
+                  </button>
+                  <button
+                    className={`
                     btn btn-error btn-wide btn-sm text-[14px] border
                     ${isDark ? "border-red-600" : "border-red-300"}
                   `}
-                  disabled={isLoading || externalLoading}
-                  onClick={onClear}>
-                  🗑️ Clear
-                </button>
+                    disabled={isLoading || externalLoading}
+                    onClick={onClear}
+                  >
+                    🗑️ Clear
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {activeTab === "settings" && (
-            <div
-              className={`
+            {activeTab === "settings" && (
+              <div
+                className={`
               border rounded-lg p-4 space-y-4
-              ${isDark ? "border-zinc-600 bg-zinc-900/30" : "border-gray-200 bg-gray-50/50"}
-            `}>
-              {/* Settings Panel */}
-              <div className="space-y-4">
-                <div className={`text-sm font-semibold ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                  🎛️ Feature Toggles
-                </div>
+              ${
+                isDark
+                  ? "border-zinc-600 bg-zinc-900/30"
+                  : "border-gray-200 bg-gray-50/50"
+              }
+            `}
+              >
+                {/* Settings Panel */}
+                <div className="space-y-4">
+                  <div
+                    className={`text-sm font-semibold ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
+                    🎛️ Feature Toggles
+                  </div>
 
-                {/* Feature toggles section */}
-                <div
-                  className={`
+                  {/* Feature toggles section */}
+                  <div
+                    className={`
                   border rounded-lg p-3 space-y-3
-                  ${isDark ? "border-zinc-700 bg-zinc-800/50" : "border-gray-200 bg-white/80"}
-                `}>
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-3 py-2">
-                      <input
-                        type="checkbox"
-                        className={`
-                        toggle toggle-sm
+                  ${
+                    isDark
+                      ? "border-zinc-700 bg-zinc-800/50"
+                      : "border-gray-200 bg-white/80"
+                  }
+                `}
+                  >
+                    <div className="form-control w-full">
+                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                        <input
+                          type="checkbox"
+                          className={`
+                        toggle toggle-sm flex-shrink-0
                         ${isDark ? "toggle-primary" : "toggle-success"}
                       `}
-                        checked={showTooltips}
-                        onChange={(e) => setShowTooltips(e.target.checked)}
-                      />
-                      <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Show tooltips
-                      </span>
-                    </label>
-                  </div>
+                          checked={showTooltips}
+                          onChange={(e) => setShowTooltips(e.target.checked)}
+                        />
+                        <span className={themeClasses.toggleLabel(isDark)}>
+                          Show tooltips
+                        </span>
+                      </label>
+                    </div>
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-3 py-2">
-                      <input
-                        type="checkbox"
-                        className={`
-                        toggle toggle-sm
+                    <div className="form-control w-full">
+                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                        <input
+                          type="checkbox"
+                          className={`
+                        toggle toggle-sm flex-shrink-0
                         ${isDark ? "toggle-primary" : "toggle-success"}
                       `}
-                        disabled
-                      />
-                      <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Auto-save progress
-                      </span>
-                    </label>
-                  </div>
+                          disabled
+                        />
+                        <span className={themeClasses.toggleLabel(isDark)}>
+                          Auto-save progress
+                        </span>
+                      </label>
+                    </div>
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-3 py-2">
-                      <input
-                        type="checkbox"
-                        className={`
-                        toggle toggle-sm
+                    <div className="form-control w-full">
+                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                        <input
+                          type="checkbox"
+                          className={`
+                        toggle toggle-sm flex-shrink-0
                         ${isDark ? "toggle-primary" : "toggle-success"}
                       `}
-                        disabled
-                      />
-                      <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Sound effects
-                      </span>
-                    </label>
-                  </div>
+                          disabled
+                        />
+                        <span className={themeClasses.toggleLabel(isDark)}>
+                          Sound effects
+                        </span>
+                      </label>
+                    </div>
 
-                  <div className="form-control">
-                    <label className="label cursor-pointer justify-start gap-3 py-2">
-                      <input
-                        type="checkbox"
-                        className={`
-                        toggle toggle-sm
+                    <div className="form-control w-full">
+                      <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                        <input
+                          type="checkbox"
+                          className={`
+                        toggle toggle-sm flex-shrink-0
                         ${isDark ? "toggle-primary" : "toggle-success"}
                       `}
-                        disabled
-                      />
-                      <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                        Animations
-                      </span>
-                    </label>
-                  </div>
-                </div>
-
-                <div className={`border-t pt-4 ${isDark ? "border-zinc-600" : "border-gray-200"}`}>
-                  <div className={`text-sm font-semibold mb-3 ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                    ⚙️ Advanced
+                          disabled
+                        />
+                        <span className={themeClasses.toggleLabel(isDark)}>
+                          Animations
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   <div
-                    className={`
-                    border rounded-lg p-3 space-y-3
-                    ${isDark ? "border-zinc-700 bg-zinc-800/50" : "border-gray-200 bg-white/80"}
-                  `}>
-                    <div className="form-control">
-                      <label className="label cursor-pointer justify-start gap-3 py-2">
-                        <input
-                          type="checkbox"
-                          className={`
-                          toggle toggle-sm
-                          ${isDark ? "toggle-warning" : "toggle-warning"}
-                        `}
-                          disabled
-                        />
-                        <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                          Debug mode
-                        </span>
-                      </label>
+                    className={`border-t pt-4 ${
+                      isDark ? "border-zinc-600" : "border-gray-200"
+                    }`}
+                  >
+                    <div
+                      className={`text-sm font-semibold mb-3 ${
+                        isDark ? "text-gray-300" : "text-gray-700"
+                      }`}
+                    >
+                      ⚙️ Advanced
                     </div>
 
-                    <div className="form-control">
-                      <label className="label cursor-pointer justify-start gap-3 py-2">
-                        <input
-                          type="checkbox"
-                          className={`
-                          toggle toggle-sm
+                    <div
+                      className={`
+                    border rounded-lg p-3 space-y-3
+                    ${
+                      isDark
+                        ? "border-zinc-700 bg-zinc-800/50"
+                        : "border-gray-200 bg-white/80"
+                    }
+                  `}
+                    >
+                      <div className="form-control w-full">
+                        <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                          <input
+                            type="checkbox"
+                            className={`
+                          toggle toggle-sm flex-shrink-0
+                          ${isDark ? "toggle-warning" : "toggle-warning"}
+                        `}
+                            disabled
+                          />
+                          <span className={themeClasses.toggleLabel(isDark)}>
+                            Debug mode
+                          </span>
+                        </label>
+                      </div>
+
+                      <div className="form-control w-full">
+                        <label className="label cursor-pointer justify-start gap-3 py-2 overflow-hidden min-w-0 w-full">
+                          <input
+                            type="checkbox"
+                            className={`
+                          toggle toggle-sm flex-shrink-0
                           ${isDark ? "toggle-info" : "toggle-info"}
                         `}
-                          disabled
-                        />
-                        <span className={`label-text text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>
-                          Performance mode
-                        </span>
-                      </label>
+                            disabled
+                          />
+                          <span className={themeClasses.toggleLabel(isDark)}>
+                            Performance mode
+                          </span>
+                        </label>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>{" "}
+          {/* End scrollable content */}
+        </div>{" "}
+        {/* End scrollable container */}
       </div>
 
       {/* Minimal toggle button when sidebar is closed */}
@@ -589,8 +730,11 @@ export default function Sidebar({
             hover:px-4 hover:shadow-xl
           `}
           onClick={() => setOpen(true)}
-          aria-label="Open sidebar">
-          <span className="block transform transition-transform duration-200 hover:scale-110">☰</span>
+          aria-label="Open sidebar"
+        >
+          <span className="block transform transition-transform duration-200 hover:scale-110">
+            ☰
+          </span>
         </button>
       )}
     </>
