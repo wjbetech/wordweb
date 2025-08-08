@@ -290,10 +290,6 @@ export default function Sidebar({
                         ? "Default"
                         : currentLineStyle === "straight"
                         ? "Straight"
-                        : currentLineStyle === "step"
-                        ? "Step"
-                        : currentLineStyle === "bezier"
-                        ? "Bezier"
                         : currentLineStyle}
                       <svg
                         className="w-4 h-4"
@@ -335,22 +331,6 @@ export default function Sidebar({
                           className={themeClasses.dropdownItem(isDark)}
                         >
                           Smooth Step
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("step")}
-                          className={themeClasses.dropdownItem(isDark)}
-                        >
-                          Step
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("bezier")}
-                          className={themeClasses.dropdownItem(isDark)}
-                        >
-                          Bezier
                         </a>
                       </li>
                     </ul>

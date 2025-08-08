@@ -1,10 +1,5 @@
 // src/types/common.ts
-export type LineStyle =
-  | "default"
-  | "straight"
-  | "smoothstep"
-  | "step"
-  | "bezier";
+export type LineStyle = "default" | "straight" | "smoothstep";
 
 export interface TooltipData {
   word: string;

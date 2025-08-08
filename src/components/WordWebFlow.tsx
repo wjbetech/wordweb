@@ -6,21 +6,21 @@ import ReactFlow, {
   BackgroundVariant,
 } from "reactflow";
 import ColoredNode from "./ColoredNode";
-import type { Node, Edge, NodeMouseHandler } from "reactflow";
+import type { Node, Edge } from "reactflow";
 import Sidebar from "./Sidebar";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
 import ConfirmModal from "./ConfirmModal";
 import NodeTooltip from "./NodeTooltip";
-import { searchDatamuse } from "../api/datamuse";
-import type { DatamuseWord } from "../types/Datamuse";
-import { useColorPalette } from "../hooks/useColorPalette";
 import { usePersistence } from "../hooks/usePersistence";
-import { useNodePositioning } from "../hooks/useNodePositioning";
+import { useTooltipState } from "../hooks/useTooltipState";
+import { useModalState } from "../hooks/useModalState";
+import { useLoadingState } from "../hooks/useLoadingState";
+import { useUserPreferences } from "../hooks/useUserPreferences";
+import { useNodeInteraction } from "../hooks/useNodeInteraction";
+import { useWordWebCreation } from "../hooks/useWordWebCreation";
 import { loadUserPreferences } from "../utils/localStorage";
 import type { LineStyle } from "../types/common";
-
-const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
 
 type WordWebFlowProps = {
   isDark: boolean;
@@ -35,51 +35,49 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     return savedPrefs?.lineStyle || "smoothstep";
   });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [loadingNodes, setLoadingNodes] = useState<Set<string>>(new Set());
   const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
-  const [isUpdatingLineStyle, setIsUpdatingLineStyle] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [centerWord, setCenterWord] = useState<string>("");
-  const [sidebarOpen, setSidebarOpen] = useState(() => {
-    const savedPrefs = loadUserPreferences();
-    return savedPrefs?.sidebarOpen || false;
-  });
-  const [tooltipsEnabled, setTooltipsEnabled] = useState(() => {
-    const savedPrefs = loadUserPreferences();
-    return savedPrefs?.tooltipsEnabled !== undefined
-      ? savedPrefs.tooltipsEnabled
-      : true;
-  });
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    const savedPrefs = loadUserPreferences();
-    return savedPrefs?.recentSearches || [];
-  });
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [showNoUniqueWordsModal, setShowNoUniqueWordsModal] = useState(false);
-  const [lastClickedWord, setLastClickedWord] = useState<string>("");
-  const [tooltipData, setTooltipData] = useState<{
-    word: string;
-    score?: number;
-    tags?: string[];
-    nodeId: string;
-    isVisible: boolean;
-    isPinned: boolean;
-    justUnpinned?: boolean;
-  }>({
-    word: "",
-    nodeId: "",
-    isVisible: false,
-    isPinned: false,
-    justUnpinned: false,
-  });
-
-  // Force tooltip re-renders when viewport changes
-  const [tooltipUpdate, setTooltipUpdate] = useState(0);
 
   const reactFlow = useReactFlow();
-  const colors = useColorPalette();
-  const { findNonOverlappingPosition } = useNodePositioning();
+  const {
+    tooltipData,
+    showTooltip,
+    hideTooltip,
+    pinTooltip,
+    unpinTooltip,
+    closeTooltip,
+    forceTooltipUpdate,
+    getTooltipPosition,
+  } = useTooltipState();
+  const {
+    showConfirmModal,
+    showNoUniqueWordsModal,
+    lastClickedWord,
+    openConfirmModal,
+    closeConfirmModal,
+    openNoUniqueWordsModal,
+    closeNoUniqueWordsModal,
+  } = useModalState();
+  const {
+    isInitialLoading,
+    isUpdatingLineStyle,
+    startInitialLoading,
+    stopInitialLoading,
+    startLineStyleUpdate,
+    stopLineStyleUpdate,
+    addLoadingNode,
+    removeLoadingNode,
+    isNodeLoading,
+  } = useLoadingState();
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    tooltipsEnabled,
+    setTooltipsEnabled,
+    recentSearches,
+    setRecentSearches,
+  } = useUserPreferences();
 
   // Get current viewport for persistence
   const viewport = reactFlow.getViewport();
@@ -101,6 +99,35 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   const edgeColor = isDark ? "#6b7280" : "#94a3b8"; // Lighter gray for dark, darker for light
 
+  const { onNodeClick } = useNodeInteraction({
+    nodes,
+    setNodes,
+    setEdges,
+    expandedNodes,
+    setExpandedNodes,
+    usedWords,
+    setUsedWords,
+    lineStyle,
+    edgeColor,
+    addLoadingNode,
+    removeLoadingNode,
+    isNodeLoading,
+    openNoUniqueWordsModal,
+    setError,
+  });
+  const { createWordWeb } = useWordWebCreation({
+    setNodes,
+    setEdges,
+    setExpandedNodes,
+    setUsedWords,
+    setCenterWord,
+    setError,
+    startInitialLoading,
+    stopInitialLoading,
+    lineStyle,
+    edgeColor,
+  });
+
   // Set ReactFlow canvas background color based on theme
   const canvasBg = isDark ? "bg-gray-800" : "bg-white";
 
@@ -113,7 +140,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         return;
       }
 
-      setIsUpdatingLineStyle(true);
+      startLineStyleUpdate();
 
       // Add a small delay for visual feedback
       await new Promise((resolve) => setTimeout(resolve, 150));
@@ -133,7 +160,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         }))
       );
 
-      setIsUpdatingLineStyle(false);
+      stopLineStyleUpdate();
     },
     [edges.length, edgeColor]
   );
@@ -189,351 +216,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   // Clear tooltips when disabled
   useEffect(() => {
     if (!tooltipsEnabled && tooltipData.isVisible) {
-      setTooltipData((prev) => ({
-        ...prev,
-        isVisible: false,
-        isPinned: false,
-      }));
+      closeTooltip();
     }
-  }, [tooltipsEnabled, tooltipData.isVisible]);
+  }, [tooltipsEnabled, tooltipData.isVisible, closeTooltip]);
 
   // Handle viewport changes to update tooltip positions
   const handleViewportChange = useCallback(() => {
-    if (tooltipData.isVisible && tooltipData.isPinned) {
-      setTooltipUpdate((prev) => prev + 1);
-    }
-  }, [tooltipData.isVisible, tooltipData.isPinned]);
-
-  // Handler to create a word web
-  const createWordWeb = useCallback(
-    async (searchWord: string, related: DatamuseWord[]) => {
-      setIsInitialLoading(true);
-      setError(null);
-      setCenterWord(searchWord);
-
-      // Clear existing nodes and edges immediately
-      setNodes([]);
-      setEdges([]);
-      setExpandedNodes(new Set());
-      setUsedWords(new Set([searchWord.toLowerCase()])); // Initialize with center word
-
-      // Reset viewport
-      reactFlow.setViewport({
-        x: 0,
-        y: 0,
-        zoom: 1,
-      });
-
-      try {
-        // Add artificial delay for better UX feedback (minimum 1200ms for initial load)
-        await new Promise((resolve) => setTimeout(resolve, 1200));
-
-        // Center node
-        const centerId = `center-${searchWord}`;
-        const centerNode: Node = {
-          id: centerId,
-          data: {
-            label: searchWord,
-            depth: 0,
-            color: colors[0],
-            isExpanded: false,
-          },
-          position: { x: center.x, y: center.y },
-          type: "colored",
-        };
-
-        setNodes([centerNode]);
-        setIsInitialLoading(false);
-
-        // After 0.5s, add related nodes around the center
-        setTimeout(() => {
-          const baseRadius = 220; // Increased for more spread between layers
-          const spreadStep = 140; // Increased to create more space between each layer
-          const depth = 1;
-          const placed: Node[] = [centerNode];
-          const relatedNodes: Node[] = related.slice(0, 8).map((wordData) => {
-            const position = findNonOverlappingPosition(
-              center.x,
-              center.y,
-              baseRadius,
-              depth,
-              spreadStep,
-              placed
-            );
-            const node = {
-              id: `related-${searchWord}-${wordData.word}`,
-              data: {
-                label: wordData.word,
-                depth,
-                color: colors[depth % colors.length],
-                isExpanded: false,
-                score: wordData.score,
-                tags: wordData.tags,
-              },
-              position,
-              type: "colored" as const,
-            };
-            placed.push(node);
-            return node;
-          });
-          setNodes([centerNode, ...relatedNodes]);
-
-          // Add related words to usedWords set
-          setUsedWords((prev) => {
-            const newSet = new Set(prev);
-            related
-              .slice(0, 8)
-              .forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
-            return newSet;
-          });
-
-          const initialEdges = relatedNodes.map((n) => ({
-            id: `e-${centerId}-${n.id}`,
-            source: centerId,
-            target: n.id,
-            style: {
-              stroke: edgeColor,
-              strokeWidth: 1.5,
-            },
-            type: lineStyle,
-            animated: false,
-          }));
-          setEdges(initialEdges);
-
-          // Auto-zoom to fit all nodes (center + related) with smooth animation
-          setTimeout(() => {
-            reactFlow.fitView({
-              nodes: [centerNode, ...relatedNodes],
-              duration: 800,
-              padding: 0.15, // Add 15% padding around the nodes for better visibility
-            });
-          }, 100); // Small delay to ensure nodes are rendered
-        }, 500);
-      } catch (error) {
-        console.error("Failed to create word web:", error);
-        setError("Failed to create word web. Please try again.");
-        setIsInitialLoading(false);
-      }
-    },
-    [reactFlow, colors, findNonOverlappingPosition, lineStyle, edgeColor]
-  );
-
-  // Node click handler to expand/collapse web
-  const onNodeClick: NodeMouseHandler = useCallback(
-    async (_event, node) => {
-      // Only process clicks on related or expanded nodes (not center node)
-      if (node.id.startsWith("related-") || node.id.startsWith("expanded-")) {
-        const isCurrentlyExpanded = expandedNodes.has(node.id);
-        const isCurrentlyLoading = loadingNodes.has(node.id);
-
-        // Don't allow clicks while loading
-        if (isCurrentlyLoading) return;
-
-        if (isCurrentlyExpanded) {
-          // Collapse - remove all child nodes and edges recursively
-          const getAllDescendantIds = (nodeId: string): Set<string> => {
-            const descendants = new Set<string>();
-            const directChildren = nodes.filter((n) =>
-              n.id.startsWith(`expanded-${nodeId}-`)
-            );
-
-            for (const child of directChildren) {
-              descendants.add(child.id);
-              const childDescendants = getAllDescendantIds(child.id);
-              childDescendants.forEach((id) => descendants.add(id));
-            }
-            return descendants;
-          };
-
-          const allDescendantIds = getAllDescendantIds(node.id);
-
-          // Remove nodes and edges
-          setNodes((prev) => prev.filter((n) => !allDescendantIds.has(n.id)));
-          setEdges((prev) =>
-            prev.filter(
-              (e) =>
-                !allDescendantIds.has(e.source) &&
-                !allDescendantIds.has(e.target)
-            )
-          );
-
-          // Update expanded state for this node and all descendants
-          setExpandedNodes((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(node.id);
-            allDescendantIds.forEach((id) => newSet.delete(id));
-            return newSet;
-          });
-
-          // Update the node's visual state
-          setNodes((prev) =>
-            prev.map((n) =>
-              n.id === node.id
-                ? { ...n, data: { ...n.data, isExpanded: false } }
-                : n
-            )
-          );
-        } else {
-          // Set loading state
-          setLoadingNodes((prev) => new Set([...prev, node.id]));
-
-          // Update the node to show loading state
-          setNodes((prev) =>
-            prev.map((n) =>
-              n.id === node.id
-                ? { ...n, data: { ...n.data, isLoading: true } }
-                : n
-            )
-          );
-
-          try {
-            // Add artificial delay for better UX feedback (minimum 600ms)
-            const [results] = await Promise.all([
-              searchDatamuse(node.data.label),
-              new Promise((resolve) => setTimeout(resolve, 600)),
-            ]);
-
-            const related = results.slice(0, 4);
-
-            // Filter out words that have already been used anywhere in the web
-            const uniqueRelated = related.filter(
-              (wordData) => !usedWords.has(wordData.word.toLowerCase())
-            );
-
-            // Check if we have any unique words to show
-            if (uniqueRelated.length === 0) {
-              // No unique words available - show modal
-              setLastClickedWord(node.data.label);
-              setShowNoUniqueWordsModal(true);
-
-              // Reset node state
-              setNodes((prev) =>
-                prev.map((n) =>
-                  n.id === node.id
-                    ? { ...n, data: { ...n.data, isLoading: false } }
-                    : n
-                )
-              );
-
-              // Remove from loading state
-              setLoadingNodes((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(node.id);
-                return newSet;
-              });
-
-              return; // Exit early
-            }
-
-            const parentDepth = node.data.depth ?? 1;
-            const depth = parentDepth + 1;
-            const baseRadius = 160;
-            const spreadStep = 120;
-            const placed: Node[] = [node, ...nodes];
-
-            const newNodes: Node[] = uniqueRelated.map((wordData) => {
-              const position = findNonOverlappingPosition(
-                node.position.x,
-                node.position.y,
-                baseRadius,
-                depth,
-                spreadStep,
-                placed
-              );
-              const n = {
-                id: `expanded-${node.id}-${wordData.word}`,
-                data: {
-                  label: wordData.word,
-                  depth,
-                  color: colors[depth % colors.length],
-                  isExpanded: false,
-                  score: wordData.score,
-                  tags: wordData.tags,
-                },
-                position,
-                type: "colored" as const,
-              };
-              placed.push(n);
-              return n;
-            });
-
-            // Add edges from parent node to each new node
-            const newEdges = newNodes.map((n) => ({
-              id: `e-${node.id}-${n.id}`,
-              source: node.id,
-              target: n.id,
-              style: {
-                stroke: edgeColor,
-                strokeWidth: 1.5,
-              },
-              type: lineStyle,
-              animated: false,
-            }));
-
-            setNodes((prev) => [...prev, ...newNodes]);
-            setEdges((prev) => [...prev, ...newEdges]);
-
-            // Add new words to usedWords set
-            setUsedWords((prev) => {
-              const newSet = new Set(prev);
-              uniqueRelated.forEach((wordData) =>
-                newSet.add(wordData.word.toLowerCase())
-              );
-              return newSet;
-            });
-
-            // Mark this node as expanded
-            setExpandedNodes((prev) => new Set([...prev, node.id]));
-
-            // Update the node's visual state (remove loading, set expanded)
-            setNodes((prev) =>
-              prev.map((n) =>
-                n.id === node.id
-                  ? {
-                      ...n,
-                      data: { ...n.data, isExpanded: true, isLoading: false },
-                    }
-                  : n
-              )
-            );
-
-            // Refocus on new nodes
-            reactFlow.fitView({ nodes: newNodes, duration: 500 });
-          } catch (error) {
-            console.error("Failed to expand node:", error);
-            setError("Failed to expand node. Please try again.");
-
-            // Reset node state on error
-            setNodes((prev) =>
-              prev.map((n) =>
-                n.id === node.id
-                  ? { ...n, data: { ...n.data, isLoading: false } }
-                  : n
-              )
-            );
-          } finally {
-            // Remove from loading state
-            setLoadingNodes((prev) => {
-              const newSet = new Set(prev);
-              newSet.delete(node.id);
-              return newSet;
-            });
-          }
-        }
-      }
-    },
-    [
-      nodes,
-      expandedNodes,
-      loadingNodes,
-      colors,
-      findNonOverlappingPosition,
-      lineStyle,
-      edgeColor,
-      reactFlow,
-      usedWords,
-    ]
-  );
+    forceTooltipUpdate();
+  }, [forceTooltipUpdate]);
 
   // Manual save/load/clear functions
   const handleSaveWordweb = useCallback(() => {
@@ -542,8 +232,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   }, [saveCurrentState]);
 
   const handleClearWordweb = useCallback(() => {
-    setShowConfirmModal(true);
-  }, []);
+    openConfirmModal();
+  }, [openConfirmModal]);
 
   const handleConfirmClear = useCallback(() => {
     setNodes([]);
@@ -553,41 +243,16 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     setCenterWord("");
     clearSavedState();
     reactFlow.fitView();
-    setShowConfirmModal(false);
-  }, [clearSavedState, reactFlow]);
+    closeConfirmModal();
+  }, [clearSavedState, reactFlow, closeConfirmModal]);
 
   const handleCancelClear = useCallback(() => {
-    setShowConfirmModal(false);
-  }, []);
+    closeConfirmModal();
+  }, [closeConfirmModal]);
 
   const handleCloseNoUniqueWordsModal = useCallback(() => {
-    setShowNoUniqueWordsModal(false);
-    setLastClickedWord("");
-  }, []);
-
-  const handleTooltipToggle = useCallback((enabled: boolean) => {
-    setTooltipsEnabled(enabled);
-  }, []);
-
-  // Helper: calculate tooltip screen position from node ID
-  const getTooltipPosition = useCallback(
-    (nodeId: string): { x: number; y: number } => {
-      const node = nodes.find((n) => n.id === nodeId);
-      if (!node) return { x: 0, y: 0 };
-
-      // Get the current viewport (tooltipUpdate forces recalculation on viewport changes)
-      const viewport = reactFlow.getViewport();
-
-      // Calculate screen position from node position and viewport
-      // Position tooltip to the right and slightly above the node
-      const screenX = node.position.x * viewport.zoom + viewport.x + 150; // offset to right of node
-      const screenY = node.position.y * viewport.zoom + viewport.y - 10; // slightly above node
-
-      return { x: screenX, y: screenY };
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [nodes, reactFlow, tooltipUpdate]
-  );
+    closeNoUniqueWordsModal();
+  }, [closeNoUniqueWordsModal]);
 
   const nodeTypes = { colored: ColoredNode };
 
@@ -650,20 +315,17 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             return;
           }
 
-          setTooltipData({
+          showTooltip({
             word: node.data.label,
             score: node.data.score,
             tags: node.data.tags,
             nodeId: node.id,
-            isVisible: true,
-            isPinned: false,
-            justUnpinned: false,
           });
         }}
         onNodeMouseLeave={() => {
           // Only hide on mouse leave if not pinned and tooltips enabled
           if (tooltipsEnabled && !tooltipData.isPinned) {
-            setTooltipData((prev) => ({ ...prev, isVisible: false }));
+            hideTooltip();
           }
         }}
         onNodeContextMenu={(event, node) => {
@@ -677,32 +339,24 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
           // If clicking the same node that's already pinned, unpin it but keep visible
           if (tooltipData.isPinned && tooltipData.word === node.data.label) {
-            setTooltipData((prev) => ({
-              ...prev,
-              isPinned: false,
-              isVisible: true, // Keep visible, just unpinned
-              justUnpinned: false, // Don't need the justUnpinned flag anymore
-            }));
+            unpinTooltip();
 
             // After a brief delay, check if mouse is still over the node and hide if needed
             setTimeout(() => {
-              setTooltipData((prev) => {
-                // Only hide if still unpinned and for the same word
-                if (!prev.isPinned && prev.word === node.data.label) {
-                  return { ...prev, isVisible: false };
-                }
-                return prev;
-              });
+              if (
+                !tooltipData.isPinned &&
+                tooltipData.word === node.data.label
+              ) {
+                hideTooltip();
+              }
             }, 100); // Short delay to allow for natural mouse movement
           } else {
             // Pin the tooltip for this node
-            setTooltipData({
+            pinTooltip({
               word: node.data.label,
               score: node.data.score,
               tags: node.data.tags,
               nodeId: node.id,
-              isVisible: true,
-              isPinned: true,
             });
           }
         }}
@@ -731,7 +385,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         sidebarOpen={sidebarOpen}
         onSidebarToggle={setSidebarOpen}
         tooltipsEnabled={tooltipsEnabled}
-        onTooltipToggle={handleTooltipToggle}
+        onTooltipToggle={setTooltipsEnabled}
       />
 
       <ConfirmModal
@@ -765,17 +419,11 @@ Try expanding a different word or start a new word web to continue discovering c
       <NodeTooltip
         word={tooltipData.word}
         score={tooltipData.score}
-        position={getTooltipPosition(tooltipData.nodeId)}
+        position={getTooltipPosition(tooltipData.nodeId, nodes)}
         isVisible={tooltipsEnabled && tooltipData.isVisible}
         isPinned={tooltipData.isPinned}
         isDark={isDark}
-        onClose={() =>
-          setTooltipData((prev) => ({
-            ...prev,
-            isVisible: false,
-            isPinned: false,
-          }))
-        }
+        onClose={closeTooltip}
       />
     </>
   );
