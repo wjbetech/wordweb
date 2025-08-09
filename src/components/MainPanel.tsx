@@ -42,11 +42,11 @@ export default function MainPanel({
           <div className={`text-sm font-semibold mb-3 ${themeClasses.secondaryText(isDark)}`}>ℹ️ Information</div>
 
           <div className="space-y-2">
-            <button onClick={onToggleHelp} className={themeClasses.actionButton(isDark, "accent")}>
+            <button onClick={onToggleHelp} className={themeClasses.actionButton(isDark, "info")}>
               ❓ Help
             </button>
 
-            <button onClick={onToggleAbout} className={themeClasses.actionButton(isDark, "accent")}>
+            <button onClick={onToggleAbout} className={themeClasses.actionButton(isDark, "info")}>
               📖 About
             </button>
           </div>

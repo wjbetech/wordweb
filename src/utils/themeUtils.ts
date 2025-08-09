@@ -107,7 +107,7 @@ export const themeClasses = {
   dropdownItem: (isDark: boolean) => getThemeClasses(isDark, "hover:bg-zinc-700", "hover:bg-gray-100"),
 
   // Action button styling
-  actionButton: (isDark: boolean, variant: "primary" | "accent" | "error") => {
+  actionButton: (isDark: boolean, variant: "primary" | "accent" | "error" | "info") => {
     const baseClasses = "btn btn-wide btn-sm text-[14px] flex items-center gap-2";
 
     switch (variant) {
@@ -129,6 +129,16 @@ export const themeClasses = {
             isDark,
             "btn-accent bg-teal-600 hover:bg-teal-700 text-white border-teal-500",
             "btn-accent bg-teal-600 hover:bg-teal-700 text-white border-teal-400"
+          )
+        );
+      case "info":
+        return (
+          baseClasses +
+          " " +
+          getThemeClasses(
+            isDark,
+            "btn-info bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-none",
+            "btn-info bg-cyan-500 hover:bg-cyan-600 text-white border-none shadow-none"
           )
         );
       case "error":

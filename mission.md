@@ -201,6 +201,12 @@
 - [ ] **Load Without Reload**: Hydrate saved state directly in-app
 - [ ] **Export/Import JSON**: Allow users to export/import wordwebs
 
+#### New Priorities (August 2025)
+
+- [ ] **Help & About Modals**: Flesh out the Help and About buttons with modals that explain the app, its development, and the creator.
+- [ ] **Settings Panel Functionality**: Make all toggles in the settings panel fully functional and persist user preferences.
+- [ ] **Share Panel Functionality**: Implement all sharing/export functions in the Share panel (copy link, export PNG/SVG/PDF/JSON, import JSON, social sharing, etc.).
+
 #### Performance & Optimization ✅
 
 - [x] **Mobile Responsiveness**: Touch-optimized interactions

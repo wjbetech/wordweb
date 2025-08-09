@@ -9,6 +9,8 @@ import { themeClasses } from "../utils/themeUtils";
 import type { LineStyle } from "../types/common";
 import LoadModal from "./LoadModal";
 import SaveModal from "./SaveModal";
+import HelpModal from "./HelpModal";
+import AboutModal from "./AboutModal";
 import {
   listNamedAppStates,
   saveNamedAppState,
@@ -106,10 +108,13 @@ export default function Sidebar({
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load modal state
+  // Load/Save modal state
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [saves, setSaves] = useState(() => listNamedAppStates());
   const [showSaveModal, setShowSaveModal] = useState(false);
+  // Help/About modal state
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   // Sync sidebar state with external handler
   useEffect(() => {
@@ -384,8 +389,8 @@ export default function Sidebar({
                     onSaveGraph={openSaveModal}
                     onLoadGraph={openLoadModal}
                     onClearGraph={onClear || (() => {})}
-                    onToggleHelp={() => {}}
-                    onToggleAbout={() => {}}
+                    onToggleHelp={() => setShowHelpModal(true)}
+                    onToggleAbout={() => setShowAboutModal(true)}
                   />
                 </div>
               )}
@@ -432,6 +437,12 @@ export default function Sidebar({
         onClose={closeSaveModal}
         onSave={handleSaveNamed}
       />
+
+      {/* Help Modal */}
+      <HelpModal isOpen={showHelpModal} isDark={isDark} onClose={() => setShowHelpModal(false)} />
+
+      {/* About Modal */}
+      <AboutModal isOpen={showAboutModal} isDark={isDark} onClose={() => setShowAboutModal(false)} />
     </>
   );
 }
