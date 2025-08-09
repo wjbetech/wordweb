@@ -19,12 +19,21 @@ import type { LineStyle } from "../types/common";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
 
+import type { AppState } from "../utils/localStorage";
+
 type WordWebFlowProps = {
   isDark: boolean;
   onThemeChange: (isDark: boolean) => void;
 };
 
 export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
+  // ...existing code...
+
+  // ...existing code...
+
+  // Hydrate function to update all relevant state from a saved AppState
+  // (Placed here after all state/hooks to avoid use-before-assignment)
+
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [lineStyle, setLineStyle] = useState<LineStyle>(() => {
@@ -70,6 +79,39 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   } = useLoadingState();
   const { sidebarOpen, setSidebarOpen, tooltipsEnabled, setTooltipsEnabled, recentSearches, setRecentSearches } =
     useUserPreferences();
+
+  // Hydrate function to update all relevant state from a saved AppState
+  // (Placed here after all state/hooks to avoid use-before-assignment)
+  const hydrateAppState = useCallback(
+    (state: AppState) => {
+      setNodes(state.nodes || []);
+      setEdges(state.edges || []);
+      setExpandedNodes(new Set(state.expandedNodes || []));
+      setUsedWords(new Set(state.usedWords || []));
+      setCenterWord(state.centerWord || "");
+      setLineStyle(state.lineStyle || "smoothstep");
+      setSidebarOpen?.(state.sidebarOpen ?? false);
+      setRecentSearches?.(state.recentSearches ?? []);
+      setTooltipsEnabled?.(state.tooltipsEnabled ?? true);
+      setTimeout(() => {
+        if (state.viewport) {
+          reactFlow.setViewport(state.viewport);
+        }
+      }, 100);
+    },
+    [
+      setNodes,
+      setEdges,
+      setExpandedNodes,
+      setUsedWords,
+      setCenterWord,
+      setLineStyle,
+      setSidebarOpen,
+      setRecentSearches,
+      setTooltipsEnabled,
+      reactFlow
+    ]
+  );
 
   // Get current viewport for persistence
   const viewport = reactFlow.getViewport();
@@ -485,6 +527,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         tooltipsEnabled={tooltipsEnabled}
         onTooltipToggle={setTooltipsEnabled}
         onExportPDF={handleExportPDF}
+        hydrateAppState={hydrateAppState}
       />
 
       <ConfirmModal

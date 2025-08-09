@@ -66,18 +66,18 @@ export const themeClasses = {
     getThemeClasses(isDark, "bg-zinc-900/50", "bg-gray-50") + " rounded-t-lg p-1 mt-2 mb-0", // No border, less margin, rounded top only
 
   tabButton: (isDark: boolean, isActive: boolean) =>
-    // Smaller, more compact tab button with subtle background for inactive state
-    "cursor-pointer flex-1 py-1 px-2 text-xs font-medium rounded-md transition-all duration-200 " +
+    // Smaller, more compact tab button with subtle background for inactive state, no border on active
+    "cursor-pointer flex-1 py-1 px-2 text-xs font-medium rounded-md transition-all duration-200 !border-0 !outline-none focus:!outline-none focus:!border-0 active:!outline-none active:!border-0 " +
     (isActive
       ? getThemeClasses(
           isDark,
-          "bg-blue-600 text-white shadow-sm border border-blue-500",
-          "bg-white text-blue-600 shadow-sm border border-blue-200"
+          "bg-blue-600 text-white shadow-sm !border-0",
+          "bg-white text-blue-600 shadow-sm !border-0"
         )
       : getThemeClasses(
           isDark,
-          "bg-zinc-800/40 text-gray-300 hover:text-white hover:bg-zinc-700",
-          "bg-gray-100 text-gray-600 hover:text-blue-700 hover:bg-gray-200"
+          "bg-zinc-800/40 text-gray-300 hover:text-white hover:bg-zinc-700 !border-0",
+          "bg-gray-100 text-gray-600 hover:text-blue-700 hover:bg-gray-200 !border-0"
         )),
 
   // Error and alert styling
@@ -108,7 +108,7 @@ export const themeClasses = {
 
   // Action button styling
   actionButton: (isDark: boolean, variant: "primary" | "accent" | "error") => {
-    const baseClasses = "btn btn-wide btn-sm text-[14px] border flex items-center gap-2";
+    const baseClasses = "btn btn-wide btn-sm text-[14px] flex items-center gap-2";
 
     switch (variant) {
       case "primary":

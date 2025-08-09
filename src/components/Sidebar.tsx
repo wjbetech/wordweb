@@ -17,6 +17,7 @@ import {
   type AppState
 } from "../utils/localStorage";
 import SharePanel from "./SharePanel";
+import ThemeToggle from "./ThemeToggle";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -38,9 +39,8 @@ type SidebarProps = {
   onExportPDF?: () => void;
   onExportJSON?: () => void;
   onImportJSON?: (file: File) => void;
+  hydrateAppState: (state: AppState) => void;
 };
-
-import ThemeToggle from "./ThemeToggle";
 
 export default function Sidebar({
   onSearch,
@@ -61,7 +61,8 @@ export default function Sidebar({
   onExportSVG,
   onExportPDF,
   onExportJSON,
-  onImportJSON
+  onImportJSON,
+  hydrateAppState
 }: SidebarProps) {
   // Tab state
   const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">("main");
@@ -206,14 +207,17 @@ export default function Sidebar({
   function handleLoadNamed(name: string) {
     const state = loadNamedAppState(name);
     if (!state) return;
-    // Write selection into main app_state so WordWebFlow loader picks it up on refresh
-    try {
-      localStorage.setItem("wordweb_app_state", JSON.stringify(state));
-      localStorage.setItem("wordweb_last_saved", new Date().toISOString());
-      // Simple approach: reload to apply across ReactFlow
-      location.reload();
-    } catch (e) {
-      console.error("Failed to load named app state", e);
+    if (typeof hydrateAppState === "function") {
+      hydrateAppState(state);
+      setShowLoadModal(false);
+    } else {
+      try {
+        localStorage.setItem("wordweb_app_state", JSON.stringify(state));
+        localStorage.setItem("wordweb_last_saved", new Date().toISOString());
+        location.reload();
+      } catch (e) {
+        console.error("Failed to load named app state", e);
+      }
     }
   }
 
@@ -300,98 +304,105 @@ export default function Sidebar({
               isDark={isDark}
             />
 
-            {/* Tab Navigation */}
+            {/* Tab Navigation and Content */}
             <div className={themeClasses.tabContainer(isDark)}>
-              <div className="flex gap-1">
+              <div className="flex gap-1 mb-2 flex-nowrap min-h-[40px]">
                 <button
-                  className={themeClasses.tabButton(isDark, activeTab === "main")}
-                  onClick={() => setActiveTab("main")}>
+                  className={`btn btn-sm flex-1 normal-case font-medium ${
+                    activeTab === "main" ? "btn-primary" : "btn-ghost"
+                  }`}
+                  onClick={() => setActiveTab("main")}
+                  type="button">
                   Main
                 </button>
                 <button
-                  className={themeClasses.tabButton(isDark, activeTab === "settings")}
-                  onClick={() => setActiveTab("settings")}>
+                  className={`btn btn-sm flex-1 normal-case font-medium ${
+                    activeTab === "settings" ? "btn-primary" : "btn-ghost"
+                  }`}
+                  onClick={() => setActiveTab("settings")}
+                  type="button">
                   Settings
                 </button>
                 <button
-                  className={themeClasses.tabButton(isDark, activeTab === "share")}
-                  onClick={() => setActiveTab("share")}>
+                  className={`btn btn-sm flex-1 normal-case font-medium ${
+                    activeTab === "share" ? "btn-primary" : "btn-ghost"
+                  }`}
+                  onClick={() => setActiveTab("share")}
+                  type="button">
                   Share
                 </button>
               </div>
-            </div>
-
-            {/* Tab Content */}
-            {activeTab === "main" && (
-              <div className={themeClasses.contentPanel(isDark)}>
-                {/* Line style selector */}
-                <div>
-                  <label className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(isDark)}`}>
-                    Line Style
-                  </label>
-                  <div className="dropdown dropdown-bottom w-full">
-                    <div tabIndex={0} role="button" className={themeClasses.dropdownButton(isDark)}>
-                      {currentLineStyle === "smoothstep"
-                        ? "Smooth Step"
-                        : currentLineStyle === "default"
-                        ? "Default"
-                        : currentLineStyle === "straight"
-                        ? "Straight"
-                        : currentLineStyle}
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+              {/* Tab Content */}
+              {activeTab === "main" && (
+                <div className={themeClasses.contentPanel(isDark)}>
+                  {/* Line style selector */}
+                  <div>
+                    <label className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(isDark)}`}>
+                      Line Style
+                    </label>
+                    <div className="dropdown dropdown-bottom w-full">
+                      <div tabIndex={0} role="button" className={themeClasses.dropdownButton(isDark)}>
+                        {currentLineStyle === "smoothstep"
+                          ? "Smooth Step"
+                          : currentLineStyle === "default"
+                          ? "Default"
+                          : currentLineStyle === "straight"
+                          ? "Straight"
+                          : currentLineStyle}
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </div>
+                      <ul tabIndex={0} className={themeClasses.dropdownMenu(isDark)}>
+                        <li>
+                          <a
+                            onClick={() => onLineStyleChange?.("default")}
+                            className={themeClasses.dropdownItem(isDark)}>
+                            Default
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            onClick={() => onLineStyleChange?.("straight")}
+                            className={themeClasses.dropdownItem(isDark)}>
+                            Straight
+                          </a>
+                        </li>
+                        <li>
+                          <a
+                            onClick={() => onLineStyleChange?.("smoothstep")}
+                            className={themeClasses.dropdownItem(isDark)}>
+                            Smooth Step
+                          </a>
+                        </li>
+                      </ul>
                     </div>
-                    <ul tabIndex={0} className={themeClasses.dropdownMenu(isDark)}>
-                      <li>
-                        <a onClick={() => onLineStyleChange?.("default")} className={themeClasses.dropdownItem(isDark)}>
-                          Default
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("straight")}
-                          className={themeClasses.dropdownItem(isDark)}>
-                          Straight
-                        </a>
-                      </li>
-                      <li>
-                        <a
-                          onClick={() => onLineStyleChange?.("smoothstep")}
-                          className={themeClasses.dropdownItem(isDark)}>
-                          Smooth Step
-                        </a>
-                      </li>
-                    </ul>
                   </div>
+                  {/* Action buttons */}
+                  <MainPanel
+                    isDark={isDark}
+                    onSaveGraph={openSaveModal}
+                    onLoadGraph={openLoadModal}
+                    onClearGraph={onClear || (() => {})}
+                    onToggleHelp={() => {}}
+                    onToggleAbout={() => {}}
+                  />
                 </div>
-
-                {/* Action buttons */}
-                <MainPanel
+              )}
+              {activeTab === "settings" && (
+                <SettingsPanel isDark={isDark} showTooltips={showTooltips} setShowTooltips={setShowTooltips} />
+              )}
+              {activeTab === "share" && (
+                <SharePanel
                   isDark={isDark}
-                  onSaveGraph={openSaveModal}
-                  onLoadGraph={openLoadModal}
-                  onClearGraph={onClear || (() => {})}
-                  onToggleHelp={() => {}}
-                  onToggleAbout={() => {}}
+                  onExportPNG={onExportPNG}
+                  onExportSVG={onExportSVG}
+                  onExportPDF={onExportPDF}
+                  onExportJSON={onExportJSON}
+                  onImportJSON={onImportJSON}
                 />
-              </div>
-            )}
-
-            {activeTab === "settings" && (
-              <SettingsPanel isDark={isDark} showTooltips={showTooltips} setShowTooltips={setShowTooltips} />
-            )}
-
-            {activeTab === "share" && (
-              <SharePanel
-                isDark={isDark}
-                onExportPNG={onExportPNG}
-                onExportSVG={onExportSVG}
-                onExportPDF={onExportPDF}
-                onExportJSON={onExportJSON}
-                onImportJSON={onImportJSON}
-              />
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
