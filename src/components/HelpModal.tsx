@@ -15,7 +15,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, isDark, onClose }) => {
     }
   };
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={handleBackdropClick}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50" onClick={handleBackdropClick}>
       <div
         className={`relative rounded-xl shadow-lg p-8 max-w-2xl w-full ${
           isDark ? "bg-gray-800 text-white" : "bg-white text-gray-900"
@@ -32,7 +32,7 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, isDark, onClose }) => {
         <div className="mb-6 space-y-8 text-md leading-relaxed">
           <p>
             <b>
-              Welcome to <span className="text-accent">wordweb</span>!
+              Welcome to <span className="text-accent">wordweb.</span>!
             </b>{" "}
             This app helps you explore and visualize word relationships in a fun, interactive way.
           </p>

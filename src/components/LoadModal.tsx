@@ -15,7 +15,7 @@ export default function LoadModal({ isOpen, isDark = false, saves, onClose, onLo
 
   return (
     <div className="modal modal-open">
-      <div className={`modal-box ${isDark ? "bg-zinc-800 text-white" : "bg-white text-gray-900"}`}>
+      <div className={`modal-box z-[80] ${isDark ? "bg-zinc-800 text-white" : "bg-white text-gray-900"}`}>
         <h3 className="font-bold text-lg mb-4">Load Saved Word Web</h3>
         <div
           className={`mb-4 p-3 rounded-lg border text-sm font-medium ${

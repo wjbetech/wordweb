@@ -26,15 +26,15 @@ export default function MainPanel({
         {/* Main action buttons */}
         <div className="space-y-2">
           <button onClick={onSaveGraph} className={themeClasses.actionButton(isDark, "primary")}>
-            💾 Save Graph
+            💾 Save wordweb
           </button>
 
           <button onClick={onLoadGraph} className={themeClasses.actionButton(isDark, "accent")}>
-            📂 Load Graph
+            📂 Load wordweb
           </button>
 
           <button onClick={onClearGraph} className={themeClasses.actionButton(isDark, "error")}>
-            🗑️ Clear Graph
+            🗑️ Clear wordweb
           </button>
         </div>
 

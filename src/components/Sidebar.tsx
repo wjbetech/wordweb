@@ -311,7 +311,7 @@ export default function Sidebar({
 
             {/* Tab Navigation and Content */}
             <div className={themeClasses.tabContainer(isDark)}>
-              <div className="flex gap-1 mb-2 flex-nowrap min-h-[40px]">
+              <div className="flex gap-1 flex-nowrap min-h-[40px]">
                 <button
                   className={`btn btn-sm flex-1 normal-case font-medium ${
                     activeTab === "main" ? "btn-primary" : "btn-ghost"

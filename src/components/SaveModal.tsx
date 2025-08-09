@@ -16,7 +16,7 @@ export default function SaveModal({
   defaultName = "",
   existingNames = [],
   onClose,
-  onSave,
+  onSave
 }: SaveModalProps) {
   const [name, setName] = useState(defaultName);
   const [touched, setTouched] = useState(false);
@@ -29,11 +29,7 @@ export default function SaveModal({
   }, [isOpen, defaultName]);
 
   const exists = useMemo(
-    () =>
-      !!name &&
-      existingNames
-        .map((n) => n.toLowerCase())
-        .includes(name.trim().toLowerCase()),
+    () => !!name && existingNames.map((n) => n.toLowerCase()).includes(name.trim().toLowerCase()),
     [existingNames, name]
   );
 
@@ -42,12 +38,8 @@ export default function SaveModal({
   const canSave = Boolean(name.trim());
 
   return (
-    <div className="modal modal-open">
-      <div
-        className={`modal-box ${
-          isDark ? "bg-zinc-800 text-white" : "bg-white text-gray-900"
-        }`}
-      >
+    <div className="modal modal-open z-[80]">
+      <div className={`modal-box ${isDark ? "bg-zinc-800 text-white" : "bg-white text-gray-900"}`}>
         <h3 className="font-bold text-lg mb-4">Save wordweb.</h3>
 
         <label className="form-control w-full">
@@ -57,9 +49,7 @@ export default function SaveModal({
           <input
             autoFocus
             type="text"
-            className={`input input-bordered w-full text-xs placeholder:text-xs ${
-              isDark ? "bg-zinc-700" : ""
-            }`}
+            className={`input input-bordered w-full text-xs placeholder:text-xs ${isDark ? "bg-zinc-700" : ""}`}
             placeholder="e.g. Brainstorm - Q3 planning"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -67,13 +57,9 @@ export default function SaveModal({
           />
           <div className="label h-5">
             {!canSave && touched ? (
-              <span className="label-text-alt text-error text-xs mt-1">
-                Please enter a name
-              </span>
+              <span className="label-text-alt text-error text-xs mt-1">Please enter a name</span>
             ) : exists ? (
-              <span className="label-text-alt text-warning">
-                This will overwrite an existing save
-              </span>
+              <span className="label-text-alt text-warning">This will overwrite an existing save</span>
             ) : (
               <span className="label-text-alt">&nbsp;</span>
             )}
@@ -94,8 +80,7 @@ export default function SaveModal({
           <button
             className="btn bg-teal-600 hover:bg-teal-700 text-white"
             onClick={() => canSave && onSave(name.trim())}
-            disabled={!canSave}
-          >
+            disabled={!canSave}>
             Save
           </button>
         </div>
