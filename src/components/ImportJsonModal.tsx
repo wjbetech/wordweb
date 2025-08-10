@@ -42,7 +42,7 @@ const ImportJsonModal: React.FC<ImportJsonModalProps> = ({ isOpen, isDark, onClo
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
-          ? (err as any).message
+          ? (err as Error).message
           : "Invalid JSON. Please check your input.";
       setError(msg);
     }
@@ -57,7 +57,7 @@ const ImportJsonModal: React.FC<ImportJsonModalProps> = ({ isOpen, isDark, onClo
     } catch (err: unknown) {
       const msg =
         err && typeof err === "object" && "message" in err
-          ? (err as any).message
+          ? (err as Error).message
           : "Invalid JSON. Please check your input.";
       setError(msg);
     }

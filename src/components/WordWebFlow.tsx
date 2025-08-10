@@ -50,9 +50,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [centerWord, setCenterWord] = useState<string>("");
 
   const [importModalOpen, setImportModalOpen] = useState(false);
-  const [importedJson, setImportedJson] = useState<string | null>(null);
-  const [saveModalOpen, setSaveModalOpen] = useState(false);
-  const [saveJson, setSaveJson] = useState<string | null>(null);
 
   const reactFlow = useReactFlow();
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -93,7 +90,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const handleOpenImportModal = () => setImportModalOpen(true);
   const handleCloseImportModal = () => {
     setImportModalOpen(false);
-    setImportedJson(null);
   };
 
   const handleImportJson = (json: string) => {
@@ -102,15 +98,13 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       // You may want to validate data here
       hydrateAppState(data);
       setImportModalOpen(false);
-      setImportedJson(null);
     } catch (e) {
+      console.log(e);
       // Optionally handle error
     }
   };
 
-  const handleSaveJson = (json: string) => {
-    setSaveJson(json);
-    setSaveModalOpen(true);
+  const handleSaveJson = () => {
     setImportModalOpen(false);
   };
 
@@ -535,6 +529,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
           onNodeClick={onNodeClick}
           onMove={handleViewportChange}
+          attributionPosition="bottom-right"
           onWheel={(event) => {
             if (!event.ctrlKey) {
               // Allow regular scroll only when Ctrl is pressed
