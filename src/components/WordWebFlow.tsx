@@ -605,7 +605,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           <Background
             color={isDark ? "#374151" : "#ddd"}
             variant={BackgroundVariant.Lines}
-            gap={20}
+            gap={40}
             offset={1}
             style={{ backgroundColor: "transparent" }}
           />

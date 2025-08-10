@@ -189,8 +189,14 @@ export function useNodeInteraction({
           })
         );
 
-        // Refocus on new nodes
-        reactFlow.fitView({ nodes: newNodes, duration: 500 });
+        // Refocus to show all nodes after expansion for better context
+        setTimeout(() => {
+          reactFlow.fitView({
+            nodes: [...nodes, ...newNodes],
+            duration: 800,
+            padding: 0.15
+          });
+        }, 100);
       } catch (error) {
         console.error("Failed to expand node:", error);
         setError("Failed to expand node. Please try again.");
