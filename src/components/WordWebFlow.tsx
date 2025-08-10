@@ -305,8 +305,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         duration: 800
       });
 
-      // Briefly highlight the center node by showing its tooltip
-      if (tooltipsEnabled) {
+      // Do not show tooltip for the core node
+      if (tooltipsEnabled && !centerNode.data.isCore) {
         showTooltip({
           word: centerNode.data.label,
           score: centerNode.data.score,
