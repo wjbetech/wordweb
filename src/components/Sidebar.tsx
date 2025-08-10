@@ -40,7 +40,7 @@ type SidebarProps = {
   // onExportSVG removed
   onExportPDF?: () => void;
   onExportJSON?: () => void;
-  onImportJSON?: (file: File) => void;
+  onImportJSON?: () => void;
   hydrateAppState: (state: AppState) => void;
 };
 

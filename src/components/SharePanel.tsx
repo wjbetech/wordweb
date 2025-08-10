@@ -6,7 +6,7 @@ type SharePanelProps = {
   onExportPNG?: () => void;
   onExportPDF?: () => void;
   onExportJSON?: () => void;
-  onImportJSON?: (file: File) => void;
+  onImportJSON?: () => void;
 };
 
 export default function SharePanel({ isDark, onExportPNG, onExportPDF, onExportJSON, onImportJSON }: SharePanelProps) {
@@ -38,20 +38,12 @@ export default function SharePanel({ isDark, onExportPNG, onExportPDF, onExportJ
 
         <div className={`border-t pt-4 ${themeClasses.border(isDark)}`}>
           <div className={`text-sm font-semibold mb-3 ${themeClasses.secondaryText(isDark)}`}>📥 Import</div>
-          <label className={themeClasses.actionButton(isDark, "primary")}>
+          <button
+            className={themeClasses.actionButton(isDark, "primary")}
+            onClick={() => onImportJSON && onImportJSON()}
+            disabled={!onImportJSON}>
             ⬆️ Import JSON
-            <input
-              type="file"
-              accept="application/json,.json"
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file && onImportJSON) onImportJSON(file);
-                e.currentTarget.value = "";
-              }}
-              disabled={!onImportJSON}
-            />
-          </label>
+          </button>
         </div>
       </div>
     </div>

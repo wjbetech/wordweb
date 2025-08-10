@@ -27,6 +27,7 @@ import { loadUserPreferences } from "../utils/localStorage";
 import type { LineStyle } from "../types/common";
 import * as htmlToImage from "html-to-image";
 import { jsPDF } from "jspdf";
+import ImportJsonModal from "./ImportJsonModal";
 
 import type { AppState } from "../utils/localStorage";
 
@@ -36,12 +37,7 @@ type WordWebFlowProps = {
 };
 
 export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
-  // ...existing code...
-
-  // ...existing code...
-
-  // --- PNG Export Handler ---
-
+  // --- State and Refs ---
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [lineStyle, setLineStyle] = useState<LineStyle>(() => {
@@ -52,6 +48,11 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const [usedWords, setUsedWords] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
   const [centerWord, setCenterWord] = useState<string>("");
+
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importedJson, setImportedJson] = useState<string | null>(null);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [saveJson, setSaveJson] = useState<string | null>(null);
 
   const reactFlow = useReactFlow();
   const flowWrapperRef = useRef<HTMLDivElement | null>(null);
@@ -88,7 +89,30 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const { sidebarOpen, setSidebarOpen, tooltipsEnabled, setTooltipsEnabled, recentSearches, setRecentSearches } =
     useUserPreferences();
 
-  // ...all hooks and logic above...
+  // --- Handlers ---
+  const handleOpenImportModal = () => setImportModalOpen(true);
+  const handleCloseImportModal = () => {
+    setImportModalOpen(false);
+    setImportedJson(null);
+  };
+
+  const handleImportJson = (json: string) => {
+    try {
+      const data = JSON.parse(json);
+      // You may want to validate data here
+      hydrateAppState(data);
+      setImportModalOpen(false);
+      setImportedJson(null);
+    } catch (e) {
+      // Optionally handle error
+    }
+  };
+
+  const handleSaveJson = (json: string) => {
+    setSaveJson(json);
+    setSaveModalOpen(true);
+    setImportModalOpen(false);
+  };
 
   // --- PNG Export Handler ---
   const handleExportPNG = useCallback(async () => {
@@ -607,6 +631,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onExportPNG={handleExportPNG}
         onExportPDF={handleExportPDF}
         onExportJSON={handleExportJSON}
+        onImportJSON={handleOpenImportModal}
         hydrateAppState={hydrateAppState}
       />
 
@@ -642,6 +667,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         isPinned={tooltipData.isPinned}
         isDark={isDark}
         onClose={closeTooltip}
+      />
+
+      <ImportJsonModal
+        isOpen={importModalOpen}
+        isDark={isDark}
+        onClose={handleCloseImportModal}
+        onImport={handleImportJson}
+        onSave={handleSaveJson}
       />
     </>
   );
