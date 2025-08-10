@@ -19,15 +19,17 @@ const ColoredNode = memo(({ data }: NodeProps) => {
   // Muted overlay for inactive nodes
   const mutedOverlay = "rgba(243,244,246,0.85)"; // Tailwind gray-100 with opacity
   let bgColor = data?.color || "#f3f4f6";
-  // All nodes should have white text
-  const textColor = "#fff";
-
+  // Use white text for core/expanded, dark for muted/inactive
+  let textColor = "#fff";
   if (isCore) {
     bgColor = data?.color || "#3b82f6";
+    textColor = "#fff";
   } else if (isExpanded) {
     bgColor = expandedPurple;
+    textColor = "#fff";
   } else {
     bgColor = `linear-gradient(0deg, ${mutedOverlay}, ${mutedOverlay}), ${data?.color || "#f3f4f6"}`;
+    textColor = "#222";
   }
 
   // Show drag handle if this node's tooltip is open or pinned
