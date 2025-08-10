@@ -56,26 +56,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           position: "relative",
           cursor: "pointer"
         }}>
-        <span
-          className="drag-handle absolute left-1 top-1 z-50 opacity-20 group-hover:opacity-100 transition-opacity"
-          style={{ cursor: "grab", pointerEvents: "auto", zIndex: 50 }}
-          title="Drag node">
-          <svg
-            className="drag-handle"
-            width="18"
-            height="18"
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ pointerEvents: "auto" }}>
-            <circle cx="5" cy="5" r="1.5" fill="#fff" />
-            <circle cx="5" cy="10" r="1.5" fill="#fff" />
-            <circle cx="5" cy="15" r="1.5" fill="#fff" />
-            <circle cx="10" cy="5" r="1.5" fill="#fff" />
-            <circle cx="10" cy="10" r="1.5" fill="#fff" />
-            <circle cx="10" cy="15" r="1.5" fill="#fff" />
-          </svg>
-        </span>
+        {/* Drag handle removed: node is now always draggable and clickable */}
         {isLoading ? (
           <>
             <Spinner size="sm" className={isExpanded ? "text-primary-content" : "text-base-content"} />

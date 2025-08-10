@@ -400,9 +400,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     []
   );
 
-  // Only allow dragging from the drag handle (class 'drag-handle')
-  const nodeDragHandleSelector = ".drag-handle";
-
   // React Flow requires onNodesChange to update node positions (including drag). Without this,
   // drag events fire but external state never mutates, so nodes appear immovable.
   const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -464,7 +461,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
           onNodeClick={onNodeClick}
           onMove={handleViewportChange}
-          nodeDragHandle={nodeDragHandleSelector}
           onWheel={(event) => {
             if (!event.ctrlKey) {
               // Allow regular scroll only when Ctrl is pressed
