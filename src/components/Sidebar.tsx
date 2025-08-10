@@ -37,7 +37,7 @@ type SidebarProps = {
   onTooltipToggle?: (enabled: boolean) => void;
   tooltipsEnabled?: boolean;
   onExportPNG?: () => void;
-  onExportSVG?: () => void;
+  // onExportSVG removed
   onExportPDF?: () => void;
   onExportJSON?: () => void;
   onImportJSON?: (file: File) => void;
@@ -60,7 +60,7 @@ export default function Sidebar({
   onTooltipToggle,
   tooltipsEnabled = true,
   onExportPNG,
-  onExportSVG,
+  // onExportSVG removed
   onExportPDF,
   onExportJSON,
   onImportJSON,
@@ -401,7 +401,7 @@ export default function Sidebar({
                 <SharePanel
                   isDark={isDark}
                   onExportPNG={onExportPNG}
-                  onExportSVG={onExportSVG}
+                  // onExportSVG removed
                   onExportPDF={onExportPDF}
                   onExportJSON={onExportJSON}
                   onImportJSON={onImportJSON}

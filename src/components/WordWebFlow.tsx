@@ -1,3 +1,4 @@
+// --- JSON Export Handler ---
 import { useState, useCallback, useEffect, useRef } from "react";
 import ReactFlow, {
   Background,
@@ -428,6 +429,33 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     setNodes((nds) => applyNodeChanges(changes, nds));
   }, []);
 
+  // --- JSON Export Handler ---
+  const handleExportJSON = useCallback(() => {
+    const exportData = {
+      nodes,
+      edges,
+      expandedNodes: Array.from(expandedNodes),
+      usedWords: Array.from(usedWords),
+      centerWord,
+      lineStyle,
+      isDark,
+      recentSearches,
+      sidebarOpen,
+    };
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const ts = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 19);
+    const filename = `wordweb-${centerWord || "export"}-${ts}.json`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [nodes, edges, expandedNodes, usedWords, centerWord, lineStyle, isDark, recentSearches, sidebarOpen]);
+
   return (
     <>
       <div
@@ -578,6 +606,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onTooltipToggle={setTooltipsEnabled}
         onExportPNG={handleExportPNG}
         onExportPDF={handleExportPDF}
+        onExportJSON={handleExportJSON}
         hydrateAppState={hydrateAppState}
       />
 
