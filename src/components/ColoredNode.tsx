@@ -41,15 +41,31 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           rounded-2xl shadow-md border border-base-200
           px-5 py-2 min-w-[60px] text-center select-none flex items-center justify-center gap-2
           font-medium text-[17px] leading-tight
-          cursor-${isLoading ? "not-allowed" : "pointer"}
+          group
         `}
         style={{
           background: bgColor,
           color: textColor,
           opacity: isLoading ? 0.7 : 1,
           fontWeight: 500,
-          backgroundBlendMode: !isCore && !isExpanded ? "multiply" : undefined
+          backgroundBlendMode: !isCore && !isExpanded ? "multiply" : undefined,
+          position: "relative",
+          cursor: "pointer"
         }}>
+        <span
+          className="absolute left-1 top-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ cursor: "grab", userSelect: "none" }}
+          title="Drag node"
+          tabIndex={-1}>
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="5" cy="5" r="1.5" fill="#fff" />
+            <circle cx="5" cy="10" r="1.5" fill="#fff" />
+            <circle cx="5" cy="15" r="1.5" fill="#fff" />
+            <circle cx="10" cy="5" r="1.5" fill="#fff" />
+            <circle cx="10" cy="10" r="1.5" fill="#fff" />
+            <circle cx="10" cy="15" r="1.5" fill="#fff" />
+          </svg>
+        </span>
         {isLoading ? (
           <>
             <Spinner size="sm" className={isExpanded ? "text-primary-content" : "text-base-content"} />

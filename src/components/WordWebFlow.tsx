@@ -444,6 +444,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               event.preventDefault();
             }
           }}
+          // onNodeDragStop removed to allow React Flow to manage position live
           defaultEdgeOptions={{
             style: { stroke: edgeColor, strokeWidth: 1.5 },
             type: lineStyle,
