@@ -2,8 +2,14 @@ import { memo } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
 import Spinner from "./Spinner";
 
-const ColoredNode = memo(({ data }: NodeProps) => {
-  // Removed unused bg and color variables
+// Extend props to accept setNodeDraggable and id
+interface ColoredNodeProps extends NodeProps {
+  setNodeDraggable?: (nodeId: string, draggable: boolean) => void;
+  tooltipData?: any;
+  tooltipsEnabled?: boolean;
+}
+
+const ColoredNode = memo(({ data, id, setNodeDraggable, tooltipData, tooltipsEnabled }: ColoredNodeProps) => {
   const isExpanded = data?.isExpanded || false;
   const isLoading = data?.isLoading || false;
   const isCore = data?.isCore || false;
@@ -22,6 +28,13 @@ const ColoredNode = memo(({ data }: NodeProps) => {
   } else {
     bgColor = `linear-gradient(0deg, ${mutedOverlay}, ${mutedOverlay}), ${data?.color || "#f3f4f6"}`;
   }
+
+  // Show drag handle if this node's tooltip is open or pinned
+  const dragHandleVisible =
+    tooltipsEnabled && tooltipData && tooltipData.nodeId === id && (tooltipData.isVisible || tooltipData.isPinned);
+  const dragHandleClass = dragHandleVisible
+    ? "drag-handle absolute left-1 top-1 z-10 opacity-100 transition-opacity"
+    : "drag-handle absolute left-1 top-1 z-10 opacity-20 group-hover:opacity-100 transition-opacity";
 
   return (
     <>
@@ -52,11 +65,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           position: "relative",
           cursor: "pointer"
         }}>
-        <span
-          className="absolute left-1 top-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-          style={{ cursor: "grab", userSelect: "none" }}
-          title="Drag node"
-          tabIndex={-1}>
+        <span className={dragHandleClass} style={{ cursor: "grab" }} title="Drag node">
           <svg width="18" height="18" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="5" cy="5" r="1.5" fill="#fff" />
             <circle cx="5" cy="10" r="1.5" fill="#fff" />

@@ -378,7 +378,23 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     }
   }, [reactFlow, nodes.length, isDark, centerWord, closeTooltip]);
 
-  const nodeTypes = { colored: ColoredNode };
+  const setNodeDraggable = useCallback(
+    (nodeId: string, draggable: boolean) => {
+      setNodes((nds) => nds.map((node) => (node.id === nodeId ? { ...node, draggable } : node)));
+    },
+    [setNodes]
+  );
+
+  const nodeTypes = {
+    colored: (props) => (
+      <ColoredNode
+        {...props}
+        setNodeDraggable={setNodeDraggable}
+        tooltipData={tooltipData}
+        tooltipsEnabled={tooltipsEnabled}
+      />
+    )
+  };
 
   return (
     <>
@@ -441,6 +457,12 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               const zoom = reactFlow.getZoom();
               const newZoom = deltaY > 0 ? zoom * 0.9 : zoom * 1.1;
               reactFlow.zoomTo(Math.min(Math.max(newZoom, 0.5), 2));
+              event.preventDefault();
+            }
+          }}
+          onNodeDragStart={(event) => {
+            // Only allow drag if the drag handle was the event target
+            if (!(event.target instanceof HTMLElement) || !event.target.classList.contains("drag-handle")) {
               event.preventDefault();
             }
           }}
