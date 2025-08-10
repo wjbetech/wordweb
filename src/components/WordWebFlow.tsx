@@ -39,8 +39,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
   // ...existing code...
 
-  // Hydrate function to update all relevant state from a saved AppState
-  // (Placed here after all state/hooks to avoid use-before-assignment)
+  // --- PNG Export Handler ---
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
@@ -88,8 +87,38 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
   const { sidebarOpen, setSidebarOpen, tooltipsEnabled, setTooltipsEnabled, recentSearches, setRecentSearches } =
     useUserPreferences();
 
-  // Hydrate function to update all relevant state from a saved AppState
-  // (Placed here after all state/hooks to avoid use-before-assignment)
+  // ...all hooks and logic above...
+
+  // --- PNG Export Handler ---
+  const handleExportPNG = useCallback(async () => {
+    try {
+      closeTooltip();
+      const prevViewport = reactFlow.getViewport();
+      if (nodes.length > 0) {
+        reactFlow.fitView({ padding: 0.2 });
+        await new Promise((r) => setTimeout(r, 150));
+      }
+      const element = flowWrapperRef.current;
+      if (!element) return;
+      const backgroundColor = isDark ? "#1f2937" : "#faf0e6";
+      const dataUrl = await htmlToImage.toPng(element, {
+        pixelRatio: 2,
+        backgroundColor,
+        cacheBust: true
+      });
+      const ts = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 19);
+      const filename = `wordweb-${centerWord || "export"}-${ts}.png`;
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      reactFlow.setViewport(prevViewport);
+    } catch (e) {
+      console.error("Export PNG failed", e);
+    }
+  }, [reactFlow, nodes.length, isDark, centerWord, closeTooltip]);
   const hydrateAppState = useCallback(
     (state: AppState) => {
       setNodes(state.nodes || []);
@@ -547,6 +576,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
         onSidebarToggle={setSidebarOpen}
         tooltipsEnabled={tooltipsEnabled}
         onTooltipToggle={setTooltipsEnabled}
+        onExportPNG={handleExportPNG}
         onExportPDF={handleExportPDF}
         hydrateAppState={hydrateAppState}
       />
