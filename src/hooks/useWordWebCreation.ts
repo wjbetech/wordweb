@@ -73,8 +73,8 @@ export function useWordWebCreation({
             isExpanded: false
           },
           position: { x: center.x, y: center.y },
-          type: "colored",
-          draggable: false
+          type: "colored"
+          // draggable: true (default)
         };
 
         setNodes([centerNode]);
@@ -105,8 +105,8 @@ export function useWordWebCreation({
                 tags: wordData.tags
               },
               position,
-              type: "colored" as const,
-              draggable: false
+              type: "colored" as const
+              // draggable: true (default)
             };
             placed.push(node);
             return node;

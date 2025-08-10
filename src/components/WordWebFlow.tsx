@@ -1,7 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import ReactFlow, { Background, Controls, useReactFlow, BackgroundVariant } from "reactflow";
+import ReactFlow, {
+  Background,
+  Controls,
+  useReactFlow,
+  BackgroundVariant,
+  applyNodeChanges,
+  type NodeChange
+} from "reactflow";
 import ColoredNode from "./ColoredNode";
-import type { Node, Edge } from "reactflow";
+import type { Node, Edge, NodeProps } from "reactflow";
+import { useMemo } from "react";
 import Sidebar from "./Sidebar";
 import LoadingOverlay from "./LoadingOverlay";
 import Toast from "./Toast";
@@ -196,7 +204,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
 
       stopLineStyleUpdate();
     },
-    [edges.length, edgeColor]
+    [edges.length, edgeColor, startLineStyleUpdate, stopLineStyleUpdate]
   );
 
   // Update edge colors when theme changes
@@ -385,16 +393,21 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     [setNodes]
   );
 
-  const nodeTypes = {
-    colored: (props) => (
-      <ColoredNode
-        {...props}
-        setNodeDraggable={setNodeDraggable}
-        tooltipData={tooltipData}
-        tooltipsEnabled={tooltipsEnabled}
-      />
-    )
-  };
+  const nodeTypes = useMemo(
+    () => ({
+      colored: (props: NodeProps) => <ColoredNode {...props} />
+    }),
+    []
+  );
+
+  // Only allow dragging from the drag handle (class 'drag-handle')
+  const nodeDragHandleSelector = ".drag-handle";
+
+  // React Flow requires onNodesChange to update node positions (including drag). Without this,
+  // drag events fire but external state never mutates, so nodes appear immovable.
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
 
   return (
     <>
@@ -443,6 +456,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           nodes={nodes}
           edges={edges}
           nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
           fitView
           minZoom={0.5}
           maxZoom={2}
@@ -450,6 +464,7 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           style={{ background: isDark ? "#1f2937" : "#faf0e6" }}
           onNodeClick={onNodeClick}
           onMove={handleViewportChange}
+          nodeDragHandle={nodeDragHandleSelector}
           onWheel={(event) => {
             if (!event.ctrlKey) {
               // Allow regular scroll only when Ctrl is pressed
@@ -457,12 +472,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
               const zoom = reactFlow.getZoom();
               const newZoom = deltaY > 0 ? zoom * 0.9 : zoom * 1.1;
               reactFlow.zoomTo(Math.min(Math.max(newZoom, 0.5), 2));
-              event.preventDefault();
-            }
-          }}
-          onNodeDragStart={(event) => {
-            // Only allow drag if the drag handle was the event target
-            if (!(event.target instanceof HTMLElement) || !event.target.classList.contains("drag-handle")) {
               event.preventDefault();
             }
           }}
