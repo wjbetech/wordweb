@@ -440,14 +440,14 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
       lineStyle,
       isDark,
       recentSearches,
-      sidebarOpen,
+      sidebarOpen
     };
     const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
+    const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const ts = new Date().toISOString().replace(/[:T]/g, "-").slice(0, 19);
     const filename = `wordweb-${centerWord || "export"}-${ts}.json`;
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
