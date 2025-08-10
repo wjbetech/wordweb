@@ -474,8 +474,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
           elementsSelectable={true}
           nodesConnectable={false}
           onNodeMouseEnter={(_, node) => {
-            // Only show tooltip on hover if tooltips enabled and not pinned
-            if (!tooltipsEnabled || tooltipData.isPinned) {
+            // Only show tooltip on hover if tooltips enabled, not pinned, and not core node
+            if (!tooltipsEnabled || tooltipData.isPinned || node.data.isCore) {
               return;
             }
 
@@ -493,8 +493,8 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
             }
           }}
           onNodeContextMenu={(event, node) => {
-            // Right-click to pin/unpin tooltip (only if tooltips enabled)
-            if (!tooltipsEnabled) {
+            // Right-click to pin/unpin tooltip (only if tooltips enabled and not core node)
+            if (!tooltipsEnabled || node.data.isCore) {
               return;
             }
 
