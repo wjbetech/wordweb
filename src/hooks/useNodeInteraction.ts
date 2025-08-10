@@ -36,7 +36,7 @@ export function useNodeInteraction({
   removeLoadingNode,
   isNodeLoading,
   openNoUniqueWordsModal,
-  setError,
+  setError
 }: UseNodeInteractionProps) {
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
@@ -45,9 +45,7 @@ export function useNodeInteraction({
   const getAllDescendantIds = useCallback(
     (nodeId: string): Set<string> => {
       const descendants = new Set<string>();
-      const directChildren = nodes.filter((n) =>
-        n.id.startsWith(`expanded-${nodeId}-`)
-      );
+      const directChildren = nodes.filter((n) => n.id.startsWith(`expanded-${nodeId}-`));
 
       for (const child of directChildren) {
         descendants.add(child.id);
@@ -65,12 +63,7 @@ export function useNodeInteraction({
 
       // Remove nodes and edges
       setNodes((prev) => prev.filter((n) => !allDescendantIds.has(n.id)));
-      setEdges((prev) =>
-        prev.filter(
-          (e) =>
-            !allDescendantIds.has(e.source) && !allDescendantIds.has(e.target)
-        )
-      );
+      setEdges((prev) => prev.filter((e) => !allDescendantIds.has(e.source) && !allDescendantIds.has(e.target)));
 
       // Update expanded state for this node and all descendants
       setExpandedNodes((prev) => {
@@ -81,13 +74,7 @@ export function useNodeInteraction({
       });
 
       // Update the node's visual state
-      setNodes((prev) =>
-        prev.map((n) =>
-          n.id === node.id
-            ? { ...n, data: { ...n.data, isExpanded: false } }
-            : n
-        )
-      );
+      setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isExpanded: false } } : n)));
     },
     [getAllDescendantIds, setNodes, setEdges, setExpandedNodes]
   );
@@ -98,25 +85,19 @@ export function useNodeInteraction({
       addLoadingNode(node.id);
 
       // Update the node to show loading state
-      setNodes((prev) =>
-        prev.map((n) =>
-          n.id === node.id ? { ...n, data: { ...n.data, isLoading: true } } : n
-        )
-      );
+      setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: true } } : n)));
 
       try {
         // Add artificial delay for better UX feedback (minimum 600ms)
         const [results] = await Promise.all([
           searchDatamuse(node.data.label),
-          new Promise((resolve) => setTimeout(resolve, 600)),
+          new Promise((resolve) => setTimeout(resolve, 600))
         ]);
 
         const related = results.slice(0, 4);
 
         // Filter out words that have already been used anywhere in the web
-        const uniqueRelated = related.filter(
-          (wordData) => !usedWords.has(wordData.word.toLowerCase())
-        );
+        const uniqueRelated = related.filter((wordData) => !usedWords.has(wordData.word.toLowerCase()));
 
         // Check if we have any unique words to show
         if (uniqueRelated.length === 0) {
@@ -124,13 +105,7 @@ export function useNodeInteraction({
           openNoUniqueWordsModal(node.data.label);
 
           // Reset node state
-          setNodes((prev) =>
-            prev.map((n) =>
-              n.id === node.id
-                ? { ...n, data: { ...n.data, isLoading: false } }
-                : n
-            )
-          );
+          setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n)));
 
           // Remove from loading state
           removeLoadingNode(node.id);
@@ -157,13 +132,14 @@ export function useNodeInteraction({
             data: {
               label: wordData.word,
               depth,
-              color: colors[depth % colors.length],
+              color: colors[depth % colors.length]?.bg || "#10b981",
+              isCore: false,
               isExpanded: false,
               score: wordData.score,
-              tags: wordData.tags,
+              tags: wordData.tags
             },
             position,
-            type: "colored" as const,
+            type: "colored" as const
           };
           placed.push(n);
           return n;
@@ -176,10 +152,10 @@ export function useNodeInteraction({
           target: n.id,
           style: {
             stroke: edgeColor,
-            strokeWidth: 1.5,
+            strokeWidth: 1.5
           },
           type: lineStyle,
-          animated: false,
+          animated: false
         }));
 
         setNodes((prev) => [...prev, ...newNodes]);
@@ -188,9 +164,7 @@ export function useNodeInteraction({
         // Add new words to usedWords set
         setUsedWords((prev) => {
           const newSet = new Set(prev);
-          uniqueRelated.forEach((wordData) =>
-            newSet.add(wordData.word.toLowerCase())
-          );
+          uniqueRelated.forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
           return newSet;
         });
 
@@ -199,14 +173,20 @@ export function useNodeInteraction({
 
         // Update the node's visual state (remove loading, set expanded)
         setNodes((prev) =>
-          prev.map((n) =>
-            n.id === node.id
-              ? {
-                  ...n,
-                  data: { ...n.data, isExpanded: true, isLoading: false },
+          prev.map((n) => {
+            if (n.id === node.id) {
+              // If core node, preserve isCore and color
+              return {
+                ...n,
+                data: {
+                  ...n.data,
+                  isExpanded: true,
+                  isLoading: false
                 }
-              : n
-          )
+              };
+            }
+            return n;
+          })
         );
 
         // Refocus on new nodes
@@ -216,13 +196,7 @@ export function useNodeInteraction({
         setError("Failed to expand node. Please try again.");
 
         // Reset node state on error
-        setNodes((prev) =>
-          prev.map((n) =>
-            n.id === node.id
-              ? { ...n, data: { ...n.data, isLoading: false } }
-              : n
-          )
-        );
+        setNodes((prev) => prev.map((n) => (n.id === node.id ? { ...n, data: { ...n.data, isLoading: false } } : n)));
       } finally {
         // Remove from loading state
         removeLoadingNode(node.id);
@@ -243,7 +217,7 @@ export function useNodeInteraction({
       setUsedWords,
       setExpandedNodes,
       reactFlow,
-      setError,
+      setError
     ]
   );
 
@@ -268,6 +242,6 @@ export function useNodeInteraction({
   );
 
   return {
-    onNodeClick,
+    onNodeClick
   };
 }

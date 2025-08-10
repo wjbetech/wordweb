@@ -3,10 +3,25 @@ import { Handle, Position, type NodeProps } from "reactflow";
 import Spinner from "./Spinner";
 
 const ColoredNode = memo(({ data }: NodeProps) => {
-  const bg = data?.color?.bg || "#fff";
-  const color = data?.color?.text || "#222";
+  // Removed unused bg and color variables
   const isExpanded = data?.isExpanded || false;
   const isLoading = data?.isLoading || false;
+  const isCore = data?.isCore || false;
+  // DaisyUI purple for expanded nodes (except core)
+  const expandedPurple = "#a21caf"; // Tailwind purple-700
+  // Muted overlay for inactive nodes
+  const mutedOverlay = "rgba(243,244,246,0.85)"; // Tailwind gray-100 with opacity
+  let bgColor = data?.color || "#f3f4f6";
+  // All nodes should have white text
+  const textColor = "#fff";
+
+  if (isCore) {
+    bgColor = data?.color || "#3b82f6";
+  } else if (isExpanded) {
+    bgColor = expandedPurple;
+  } else {
+    bgColor = `linear-gradient(0deg, ${mutedOverlay}, ${mutedOverlay}), ${data?.color || "#f3f4f6"}`;
+  }
 
   return (
     <>
@@ -14,47 +29,41 @@ const ColoredNode = memo(({ data }: NodeProps) => {
         type="target"
         position={Position.Top}
         style={{
-          background: "#475569",
+          background: "#60a5fa",
           width: 8,
           height: 8,
           border: "2px solid white"
         }}
       />
       <div
+        className={`
+          transition-all duration-200
+          rounded-2xl shadow-md border border-base-200
+          px-5 py-2 min-w-[60px] text-center select-none flex items-center justify-center gap-2
+          font-medium text-[17px] leading-tight
+          cursor-${isLoading ? "not-allowed" : "pointer"}
+        `}
         style={{
-          background: isExpanded ? "#555" : bg,
-          color: isExpanded ? "#fff" : color,
-          borderRadius: 12,
-          padding: "10px 18px",
-          fontWeight: 700,
-          fontSize: 18,
-          boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)",
-          border: "none",
-          minWidth: 60,
-          textAlign: "center",
-          userSelect: "none",
-          cursor: isLoading ? "not-allowed" : "pointer",
-          opacity: isExpanded ? 0.6 : isLoading ? 0.7 : 1,
-          position: "relative",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "6px"
+          background: bgColor,
+          color: textColor,
+          opacity: isLoading ? 0.7 : 1,
+          fontWeight: 500,
+          backgroundBlendMode: !isCore && !isExpanded ? "multiply" : undefined
         }}>
         {isLoading ? (
           <>
-            <Spinner size="sm" className={isExpanded ? "text-white" : "text-current"} />
-            <span style={{ fontSize: 14 }}>Loading...</span>
+            <Spinner size="sm" className={isExpanded ? "text-primary-content" : "text-base-content"} />
+            <span className="text-sm">Loading...</span>
           </>
         ) : (
-          data.label
+          <span className="truncate w-full">{data.label}</span>
         )}
       </div>
       <Handle
         type="source"
         position={Position.Bottom}
         style={{
-          background: "#475569",
+          background: "#60a5fa",
           width: 8,
           height: 8,
           border: "2px solid white"

@@ -30,7 +30,7 @@ export function useWordWebCreation({
   startInitialLoading,
   stopInitialLoading,
   lineStyle,
-  edgeColor,
+  edgeColor
 }: UseWordWebCreationProps) {
   const reactFlow = useReactFlow();
   const colors = useColorPalette();
@@ -52,7 +52,7 @@ export function useWordWebCreation({
       reactFlow.setViewport({
         x: 0,
         y: 0,
-        zoom: 1,
+        zoom: 1
       });
 
       try {
@@ -61,16 +61,19 @@ export function useWordWebCreation({
 
         // Center node
         const centerId = `center-${searchWord}`;
+        // Use a unique, vibrant color for the core node (e.g., DaisyUI primary)
+        const coreColor = colors[0]?.bg || "#3b82f6";
         const centerNode: Node = {
           id: centerId,
           data: {
             label: searchWord,
             depth: 0,
-            color: colors[0],
-            isExpanded: false,
+            color: coreColor,
+            isCore: true,
+            isExpanded: false
           },
           position: { x: center.x, y: center.y },
-          type: "colored",
+          type: "colored"
         };
 
         setNodes([centerNode]);
@@ -82,27 +85,26 @@ export function useWordWebCreation({
           const spreadStep = 140; // Increased to create more space between each layer
           const depth = 1;
           const placed: Node[] = [centerNode];
-          const relatedNodes: Node[] = related.slice(0, 8).map((wordData) => {
-            const position = findNonOverlappingPosition(
-              center.x,
-              center.y,
-              baseRadius,
-              depth,
-              spreadStep,
-              placed
-            );
+          const relatedNodes: Node[] = related.slice(0, 8).map((wordData, idx) => {
+            const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+            // Assign a new color for each layer (depth)
+            const layerColor =
+              colors[depth + (idx % (colors.length - 1)) + 1]?.bg ||
+              colors[(depth + idx) % colors.length]?.bg ||
+              "#10b981";
             const node = {
               id: `related-${searchWord}-${wordData.word}`,
               data: {
                 label: wordData.word,
                 depth,
-                color: colors[depth % colors.length],
+                color: layerColor,
+                isCore: false,
                 isExpanded: false,
                 score: wordData.score,
-                tags: wordData.tags,
+                tags: wordData.tags
               },
               position,
-              type: "colored" as const,
+              type: "colored" as const
             };
             placed.push(node);
             return node;
@@ -112,9 +114,7 @@ export function useWordWebCreation({
           // Add related words to usedWords set
           setUsedWords((prev) => {
             const newSet = new Set(prev);
-            related
-              .slice(0, 8)
-              .forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
+            related.slice(0, 8).forEach((wordData) => newSet.add(wordData.word.toLowerCase()));
             return newSet;
           });
 
@@ -124,10 +124,10 @@ export function useWordWebCreation({
             target: n.id,
             style: {
               stroke: edgeColor,
-              strokeWidth: 1.5,
+              strokeWidth: 1.5
             },
             type: lineStyle,
-            animated: false,
+            animated: false
           }));
           setEdges(initialEdges);
 
@@ -136,7 +136,7 @@ export function useWordWebCreation({
             reactFlow.fitView({
               nodes: [centerNode, ...relatedNodes],
               duration: 800,
-              padding: 0.15, // Add 15% padding around the nodes for better visibility
+              padding: 0.15 // Add 15% padding around the nodes for better visibility
             });
           }, 100); // Small delay to ensure nodes are rendered
         }, 500);
@@ -159,11 +159,11 @@ export function useWordWebCreation({
       setEdges,
       setExpandedNodes,
       setUsedWords,
-      stopInitialLoading,
+      stopInitialLoading
     ]
   );
 
   return {
-    createWordWeb,
+    createWordWeb
   };
 }
