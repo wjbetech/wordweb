@@ -386,13 +386,6 @@ export function WordWebFlow({ isDark, onThemeChange }: WordWebFlowProps) {
     }
   }, [reactFlow, nodes.length, isDark, centerWord, closeTooltip]);
 
-  const setNodeDraggable = useCallback(
-    (nodeId: string, draggable: boolean) => {
-      setNodes((nds) => nds.map((node) => (node.id === nodeId ? { ...node, draggable } : node)));
-    },
-    [setNodes]
-  );
-
   const nodeTypes = useMemo(
     () => ({
       colored: (props: NodeProps) => <ColoredNode {...props} />
