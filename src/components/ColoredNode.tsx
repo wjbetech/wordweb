@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import { Handle, Position, type NodeProps } from "reactflow";
 import Spinner from "./Spinner";
 
@@ -6,6 +6,11 @@ import Spinner from "./Spinner";
 // ...existing code...
 
 const ColoredNode = memo(({ data }: NodeProps) => {
+  const [isNew, setIsNew] = useState(true);
+  useEffect(() => {
+    const timer = setTimeout(() => setIsNew(false), 350);
+    return () => clearTimeout(timer);
+  }, []);
   const isExpanded = data?.isExpanded || false;
   const isLoading = data?.isLoading || false;
   const isCore = data?.isCore || false;
@@ -46,6 +51,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           px-5 py-2 min-w-[60px] text-center select-none flex items-center justify-center gap-2
           font-medium text-[17px] leading-tight
           group
+          ${isNew ? "animate-pop-in" : ""}
         `}
         style={{
           background: bgColor,
