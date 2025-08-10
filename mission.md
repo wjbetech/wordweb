@@ -1,3 +1,54 @@
+## 🚀 Overhead, SEO, and Polish Improvements (Backlog)
+
+### 1. SEO & Social
+
+- Add a `robots.txt` and `sitemap.xml` for better search engine indexing.
+- Use a unique, branded favicon (not the default Vite icon).
+- Add a canonical URL meta tag.
+- Set a language attribute (`<html lang="en">` is good, but ensure it's correct for your audience).
+
+### 2. Accessibility
+
+- Ensure all interactive elements (buttons, links) have accessible labels and keyboard navigation.
+- Add `aria-label` or `aria-*` attributes where needed.
+- Check color contrast for accessibility.
+
+### 3. Performance
+
+- Add a `<meta name="theme-color" ...>` for mobile browser theming.
+- Use `preconnect` or `dns-prefetch` for external APIs or fonts.
+- Optimize images and SVGs (favicon, Open Graph image).
+
+### 4. PWA/Installability
+
+- Add a `manifest.json` for Progressive Web App support (installable on mobile).
+- Add a service worker for offline support (optional, but Vite makes this easy).
+
+### 5. Analytics & Monitoring
+
+- Add Google Analytics, Plausible, or another privacy-friendly analytics tool.
+- Set up error monitoring (e.g., Sentry) for production.
+
+### 6. User Experience
+
+- Add a loading spinner or skeleton for slow network/API responses.
+- Add a "Share" button for social media or direct link sharing.
+- Add a "Feedback" or "Contact" link for user suggestions or bug reports.
+- Add a "Back to Top" button for long pages.
+
+### 7. Code & Dev Experience
+
+- Add a `README.md` with setup, usage, and contribution instructions.
+- Add a `LICENSE` file if you plan to open source.
+- Set up automated linting/formatting (Prettier, ESLint).
+- Add basic tests (unit or integration) for key components.
+
+### 8. Branding & Trust
+
+- Add a footer with copyright, privacy policy, and terms.
+- Add your logo and a short tagline.
+- Add a "Powered by React Flow" or similar credit if required by license.
+
 # 🎯 wordweb. Project Mission
 
 > **Vision**: Create an intuitive, beautiful, and powerful visual word association tool that helps users explore language connections, brainstorm ideas, and discover semantic relationships through interactive graph visualization.
