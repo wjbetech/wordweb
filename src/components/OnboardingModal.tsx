@@ -13,9 +13,8 @@ export default function OnboardingModal({ isOpen, onClose, onDisable, isDark = f
         <h2 className="font-bold text-xl mb-2">
           Welcome to <span className="text-accent">wordweb.</span>
         </h2>
-        <p className="mb-4 text-md opacity-80">
-          <span className="text-accent font-bold">wordweb.</span> helps you visualize and explore word relationships.{" "}
-          <br />
+        <div className="mb-4 text-md opacity-80">
+          <span className="text-accent font-bold">wordweb.</span> helps you visualize and explore word relationships.
           <ul className="list-disc ml-6 mt-2 mb-4">
             <li>Search a word or roll a random word</li>
             <li>Click and drag nodes, re-click to dismiss</li>
@@ -23,7 +22,7 @@ export default function OnboardingModal({ isOpen, onClose, onDisable, isDark = f
             <li>Save, load, and share your creations</li>
           </ul>
           <span className="block mt-2">Enjoy exploring!</span>
-        </p>
+        </div>
         <div className="modal-action flex gap-2">
           <button className="btn btn-ghost" onClick={onClose}>
             Close

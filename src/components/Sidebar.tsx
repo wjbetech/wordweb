@@ -43,6 +43,7 @@ type SidebarProps = {
   onExportJSON?: () => void;
   onImportJSON?: () => void;
   hydrateAppState: (state: AppState) => void;
+  onResetOnboarding?: () => void;
 };
 
 export default function Sidebar({
@@ -65,7 +66,8 @@ export default function Sidebar({
   onExportPDF,
   onExportJSON,
   onImportJSON,
-  hydrateAppState
+  hydrateAppState,
+  onResetOnboarding
 }: SidebarProps) {
   // Tab state
   const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">("main");
@@ -490,7 +492,12 @@ export default function Sidebar({
       />
 
       {/* Help Modal */}
-      <HelpModal isOpen={showHelpModal} isDark={isDark} onClose={() => setShowHelpModal(false)} />
+      <HelpModal
+        isOpen={showHelpModal}
+        isDark={isDark}
+        onClose={() => setShowHelpModal(false)}
+        onResetOnboarding={onResetOnboarding}
+      />
 
       {/* About Modal */}
       <AboutModal isOpen={showAboutModal} isDark={isDark} onClose={() => setShowAboutModal(false)} />

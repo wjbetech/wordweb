@@ -248,7 +248,7 @@
 #### Persistence UX
 
 - [x] **Named Saves**: Save/Load modals and local named saves in localStorage
-- [ ] **Load Without Reload**: Hydrate saved state directly in-app
+- [x] **Load Without Reload**: Hydrate saved state directly in-app
 
 #### New Priorities (August 2025)
 
