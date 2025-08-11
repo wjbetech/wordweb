@@ -35,6 +35,7 @@
 - Add a "Share" button for social media or direct link sharing.
 - Add a "Feedback" or "Contact" link for user suggestions or bug reports.
 - Add a "Back to Top" button for long pages.
+- [ ] **Onboarding Modal for First-Time Users**: Display a modal on first app load that introduces the core features and usage tips. Allow users to opt out of seeing it again (preference stored in localStorage). Modal should be visually consistent with the app’s style and accessible.
 
 ### 7. Code & Dev Experience
 
