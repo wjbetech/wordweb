@@ -8,27 +8,17 @@ import type { Node } from "reactflow";
  */
 export const useNodePositioning = () => {
   // Helper: check if a position is too close to any node
-  const isOverlapping = useCallback(
-    (x: number, y: number, placed: Node[], minDist: number): boolean => {
-      return placed.some((node) => {
-        const dx = node.position.x - x;
-        const dy = node.position.y - y;
-        return Math.sqrt(dx * dx + dy * dy) < minDist;
-      });
-    },
-    []
-  );
+  const isOverlapping = useCallback((x: number, y: number, placed: Node[], minDist: number): boolean => {
+    return placed.some((node) => {
+      const dx = node.position.x - x;
+      const dy = node.position.y - y;
+      return Math.sqrt(dx * dx + dy * dy) < minDist;
+    });
+  }, []);
 
   // Helper: Find a non-overlapping position using spiral placement if random fails
   const findNonOverlappingPosition = useCallback(
-    (
-      startX: number,
-      startY: number,
-      baseRadius: number,
-      depth: number,
-      spreadStep: number,
-      placed: Node[]
-    ) => {
+    (startX: number, startY: number, baseRadius: number, depth: number, spreadStep: number, placed: Node[]) => {
       const minDist = 180;
 
       // Center position for calculations
@@ -59,9 +49,7 @@ export const useNodePositioning = () => {
       }
 
       // For deeper layers or fallback, use directional placement away from parent
-      const existingNodes = placed.filter(
-        (n) => n.position.x !== startX || n.position.y !== startY
-      );
+      const existingNodes = placed.filter((n) => n.position.x !== startX || n.position.y !== startY);
 
       // Calculate direction away from center and existing nodes
       let preferredAngle = Math.atan2(startY - center.y, startX - center.x); // Direction from center
@@ -84,11 +72,7 @@ export const useNodePositioning = () => {
         let maxGap = 0;
         let bestAngle = preferredAngle;
 
-        for (
-          let testAngle = 0;
-          testAngle < 2 * Math.PI;
-          testAngle += Math.PI / 12
-        ) {
+        for (let testAngle = 0; testAngle < 2 * Math.PI; testAngle += Math.PI / 12) {
           let minDistance = Math.PI;
           for (const avoidAngle of avoidAngles) {
             let angleDiff = Math.abs(testAngle - avoidAngle);
@@ -113,7 +97,7 @@ export const useNodePositioning = () => {
 
         // Add more radius variation
         const radiusJitter = Math.random() * 80 - 40; // ±40px variation
-        const radius = baseRadius + (depth - 1) * spreadStep + radiusJitter;
+        const radius = baseRadius + radiusJitter;
 
         const x = startX + radius * Math.cos(angle);
         const y = startY + radius * Math.sin(angle);
@@ -136,10 +120,10 @@ export const useNodePositioning = () => {
       }
 
       // Absolute fallback
-      const fallbackRadius = baseRadius + (depth - 1) * spreadStep + 200;
+      const fallbackRadius = baseRadius + 200;
       return {
         x: startX + fallbackRadius * Math.cos(preferredAngle),
-        y: startY + fallbackRadius * Math.sin(preferredAngle),
+        y: startY + fallbackRadius * Math.sin(preferredAngle)
       };
     },
     [isOverlapping]
@@ -147,6 +131,6 @@ export const useNodePositioning = () => {
 
   return {
     isOverlapping,
-    findNonOverlappingPosition,
+    findNonOverlappingPosition
   };
 };

@@ -82,8 +82,8 @@ export function useWordWebCreation({
 
         // After 0.5s, add related nodes around the center
         setTimeout(() => {
-          const baseRadius = 220; // Increased for more spread between layers
-          const spreadStep = 140; // Increased to create more space between each layer
+          const baseRadius = 220; // Fixed radius for all layers
+          const spreadStep = 0; // No additional spread for deeper layers
           const depth = 1;
           const placed: Node[] = [centerNode];
           const relatedNodes: Node[] = related.slice(0, 8).map((wordData, idx) => {
