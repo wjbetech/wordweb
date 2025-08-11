@@ -35,11 +35,6 @@ export default function App() {
     setShowOnboarding(false);
   };
 
-  const handleResetOnboarding = () => {
-    setCookie("wordweb_onboarding_disabled", "0", 365);
-    setShowOnboarding(true);
-  };
-
   return (
     <>
       <OnboardingModal
@@ -48,7 +43,7 @@ export default function App() {
         onDisable={handleDisableOnboarding}
         isDark={isDark}
       />
-      <Sidebar isDark={isDark} onThemeChange={setIsDark} onResetOnboarding={handleResetOnboarding} />
+      <Sidebar isDark={isDark} onThemeChange={setIsDark} hydrateAppState={() => {}} />
       <WordMap isDark={isDark} onThemeChange={setIsDark} />
     </>
   );
