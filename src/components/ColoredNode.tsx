@@ -1,4 +1,6 @@
 import { memo, useEffect, useState } from "react";
+import { Handle, Position, type NodeProps } from "reactflow";
+import Spinner from "./Spinner";
 
 // Utility: Calculate luminance and contrast ratio
 function luminance(r: number, g: number, b: number) {
@@ -25,21 +27,14 @@ function adjustBgForContrast(bg: string, text: string, minRatio = 4.5) {
   let tries = 0;
   while (contrastRatio(bg, text) < minRatio && tries < 10) {
     // Lighten or darken depending on text color
-    rgb = (text === "#222" ? rgb.map((v) => Math.min(255, v + 16)) : rgb.map((v) => Math.max(0, v - 16))) as [
-      number,
-      number,
-      number
-    ];
-    bg = "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
+    rgb = (text === "#222"
+      ? rgb.map((v) => Math.min(255, v + 16))
+      : rgb.map((v) => Math.max(0, v - 16))) as [number, number, number];
+    bg = '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('');
     tries++;
   }
   return bg;
 }
-import { Handle, Position, type NodeProps } from "reactflow";
-import Spinner from "./Spinner";
-
-// Extend props to accept setNodeDraggable and id
-// ...existing code...
 
 const ColoredNode = memo(({ data }: NodeProps) => {
   const [isNew, setIsNew] = useState(true);
@@ -47,9 +42,9 @@ const ColoredNode = memo(({ data }: NodeProps) => {
     const timer = setTimeout(() => setIsNew(false), 350);
     return () => clearTimeout(timer);
   }, []);
-  const isExpanded = data?.isExpanded || false;
   const isLoading = data?.isLoading || false;
   const isCore = data?.isCore || false;
+  const isExpanded = data?.isExpanded || false;
   // Consistent text color for all nodes
   const textColor = "#222";
   // Fun, random, or themed color from data.color, fallback to light gray
@@ -63,8 +58,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
     bgColor = "#f3f4f6";
   }
 
-  // Show drag handle if this node's tooltip is open or pinned
-
+  const [hovered, setHovered] = useState(false);
   return (
     <>
       <Handle
@@ -78,16 +72,19 @@ const ColoredNode = memo(({ data }: NodeProps) => {
         }}
       />
       <div
-        className={`
-          transition-all duration-200
-          rounded-2xl shadow-md border border-base-200
-          px-5 min-w-[60px] select-none flex justify-center items-center gap-2
-          font-medium text-[17px] leading-tight
-          group
-          ${isNew ? "animate-pop-in" : ""}
-        `}
+        className={[
+          "transition-all duration-200",
+          "rounded-2xl shadow-md border border-base-200",
+          "px-5 min-w-[60px] select-none flex justify-center items-center gap-2",
+          "font-medium text-[17px] leading-tight",
+          "group",
+          isNew ? "animate-pop-in" : "",
+          "hover:border-blue-400 hover:shadow-lg"
+        ].join(" ")}
         style={{
-          background: bgColor,
+          background: hovered
+            ? `linear-gradient(0deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04)), ${bgColor}`
+            : bgColor,
           color: textColor,
           opacity: isLoading ? 0.7 : 1,
           fontWeight: 500,
@@ -97,7 +94,10 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           height: 44, // fixed height for perfect vertical centering
           paddingTop: 0,
           paddingBottom: 0
-        }}>
+        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
         {/* Drag handle removed: node is now always draggable and clickable */}
         {isLoading ? (
           <>
