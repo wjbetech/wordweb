@@ -252,9 +252,9 @@
 
 #### New Priorities (August 2025)
 
-- [ ] **Help & About Modals**: Flesh out the Help and About buttons with modals that explain the app, its development, and the creator.
-- [ ] **Settings Panel Functionality**: Make all toggles in the settings panel fully functional and persist user preferences.
-- [ ] **Share Panel Functionality**: Implement all sharing/export functions in the Share panel (copy link, export PNG/PDF/JSON, import JSON, social sharing, etc.).
+- [x] **Help & About Modals**: Flesh out the Help and About buttons with modals that explain the app, its development, and the creator.
+- [x] **Settings Panel Functionality**: Make all toggles in the settings panel fully functional and persist user preferences.
+- [x] **Share Panel Functionality**: Implement all sharing/export functions in the Share panel (copy link, export PNG/PDF/JSON, import JSON, social sharing, etc.).
 
 #### Performance & Optimization ✅
 
