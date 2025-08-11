@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import WordMap from "./components/WordMap";
+import OnboardingModal from "./components/OnboardingModal";
+import { getCookie, setCookie } from "./utils/cookieUtils";
 import "reactflow/dist/style.css";
 
 export default function App() {
@@ -11,12 +13,39 @@ export default function App() {
     return false;
   });
 
+  // Onboarding modal state
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window !== "undefined") {
+      return getCookie("wordweb_onboarding_disabled") !== "1";
+    }
+    return true;
+  });
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       localStorage.setItem("isDark", isDark.toString());
-      document.documentElement.setAttribute("data-theme", isDark ? "dark" : "light");
+      document.documentElement.setAttribute(
+        "data-theme",
+        isDark ? "dark" : "light"
+      );
     }
   }, [isDark]);
 
-  return <WordMap isDark={isDark} onThemeChange={setIsDark} />;
+  const handleCloseOnboarding = () => setShowOnboarding(false);
+  const handleDisableOnboarding = () => {
+    setCookie("wordweb_onboarding_disabled", "1", 365);
+    setShowOnboarding(false);
+  };
+
+  return (
+    <>
+      <OnboardingModal
+        isOpen={showOnboarding}
+        onClose={handleCloseOnboarding}
+        onDisable={handleDisableOnboarding}
+        isDark={isDark}
+      />
+      <WordMap isDark={isDark} onThemeChange={setIsDark} />
+    </>
+  );
 }
