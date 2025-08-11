@@ -111,6 +111,7 @@
 - **Responsive Design**: Touch-optimized for mobile, works beautifully on desktop
 - **Accessibility**: Screen reader friendly with keyboard navigation
 - **Theme System**: Proper DaisyUI light/dark mode with user toggle
+- **Node Deletion**: Allow users to delete nodes from the current word web (except the core node), for more flexible editing and cleanup.
 
 ## 💻 Technical Foundation
 
