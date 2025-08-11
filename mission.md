@@ -65,12 +65,8 @@
   - Edge-cursor fix; major refactor; consistent modal styling
 - In progress:
   - Improve Load: hydrate state without full page reload
-  - Export/Import JSON of wordwebs
 - Next steps (priority):
   1. Hydrate saved state in-app (no reload) by adding a hydrate function in `WordWebFlow` and calling it from `Sidebar`
-  2. Export/Import JSON for wordwebs
-  3. PNG/SVG export via ReactFlow utilities
-  4. Optional: default save-name heuristic (center word + timestamp)
 
 ## 🎪 Core Purpose
 
@@ -253,13 +249,12 @@
 
 - [x] **Named Saves**: Save/Load modals and local named saves in localStorage
 - [ ] **Load Without Reload**: Hydrate saved state directly in-app
-- [ ] **Export/Import JSON**: Allow users to export/import wordwebs
 
 #### New Priorities (August 2025)
 
 - [ ] **Help & About Modals**: Flesh out the Help and About buttons with modals that explain the app, its development, and the creator.
 - [ ] **Settings Panel Functionality**: Make all toggles in the settings panel fully functional and persist user preferences.
-- [ ] **Share Panel Functionality**: Implement all sharing/export functions in the Share panel (copy link, export PNG/SVG/PDF/JSON, import JSON, social sharing, etc.).
+- [ ] **Share Panel Functionality**: Implement all sharing/export functions in the Share panel (copy link, export PNG/PDF/JSON, import JSON, social sharing, etc.).
 
 #### Performance & Optimization ✅
 
