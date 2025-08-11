@@ -108,7 +108,7 @@ export const themeClasses = {
 
   // Action button styling
   actionButton: (isDark: boolean, variant: "primary" | "accent" | "error" | "info") => {
-    const baseClasses = "btn btn-wide btn-sm text-[14px] flex items-center gap-2";
+    const baseClasses = "btn btn-wide btn-sm text-[14px] flex items-center justify-center gap-2";
 
     switch (variant) {
       case "primary":
@@ -138,7 +138,7 @@ export const themeClasses = {
           getThemeClasses(
             isDark,
             "btn-info bg-indigo-600 hover:bg-indigo-700 text-white border-none shadow-none",
-            "btn-info bg-cyan-500 hover:bg-cyan-600 text-white border-none shadow-none"
+            "btn-info bg-cyan-700 hover:bg-cyan-800 text-white border-none shadow-none"
           )
         );
       case "error":
