@@ -27,10 +27,12 @@ function adjustBgForContrast(bg: string, text: string, minRatio = 4.5) {
   let tries = 0;
   while (contrastRatio(bg, text) < minRatio && tries < 10) {
     // Lighten or darken depending on text color
-    rgb = (text === "#222"
-      ? rgb.map((v) => Math.min(255, v + 16))
-      : rgb.map((v) => Math.max(0, v - 16))) as [number, number, number];
-    bg = '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('');
+    rgb = (text === "#222" ? rgb.map((v) => Math.min(255, v + 16)) : rgb.map((v) => Math.max(0, v - 16))) as [
+      number,
+      number,
+      number
+    ];
+    bg = "#" + rgb.map((v) => v.toString(16).padStart(2, "0")).join("");
     tries++;
   }
   return bg;
@@ -82,9 +84,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           "hover:border-blue-400 hover:shadow-lg"
         ].join(" ")}
         style={{
-          background: hovered
-            ? `linear-gradient(0deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04)), ${bgColor}`
-            : bgColor,
+          background: hovered ? `linear-gradient(0deg, rgba(0,0,0,0.04), rgba(0,0,0,0.04)), ${bgColor}` : bgColor,
           color: textColor,
           opacity: isLoading ? 0.7 : 1,
           fontWeight: 500,
@@ -96,8 +96,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           paddingBottom: 0
         }}
         onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
+        onMouseLeave={() => setHovered(false)}>
         {/* Drag handle removed: node is now always draggable and clickable */}
         {isLoading ? (
           <>
