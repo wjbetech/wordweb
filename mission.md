@@ -244,7 +244,7 @@
 - [x] **Advanced Tooltip System**: Pinnable tooltips with score and tag information
 - [x] **Recent Search Management**: Track and manage recent searches with delete functionality
 - [x] **Random Word Search**: "Surprise me" functionality for discovery
-- [ ] **Export Options**: Save to PDF, PNG, SVG formats
+- [x] **Export Options**: Save to PDF, PNG, SVG formats
 - [x] **Advanced Node States**: Visual indicators for expanded/used states
 - [x] **Return to Core Word**: Button to return focus to the center word
 

@@ -16,10 +16,11 @@ import {
   saveNamedAppState,
   loadNamedAppState,
   deleteNamedAppState,
-  type AppState
+  type AppState,
 } from "../utils/localStorage";
 import SharePanel from "./SharePanel";
 import ThemeToggle from "./ThemeToggle";
+import { format } from "date-fns";
 
 type SidebarProps = {
   onSearch?: (centerWord: string, related: DatamuseWord[]) => void;
@@ -64,10 +65,12 @@ export default function Sidebar({
   onExportPDF,
   onExportJSON,
   onImportJSON,
-  hydrateAppState
+  hydrateAppState,
 }: SidebarProps) {
   // Tab state
-  const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">("main");
+  const [activeTab, setActiveTab] = useState<"main" | "settings" | "share">(
+    "main"
+  );
 
   // Tooltip preference state with localStorage persistence
   const [showTooltips, setShowTooltips] = useState(() => {
@@ -112,6 +115,7 @@ export default function Sidebar({
   const [showLoadModal, setShowLoadModal] = useState(false);
   const [saves, setSaves] = useState(() => listNamedAppStates());
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [defaultSaveName, setDefaultSaveName] = useState("");
   // Help/About modal state
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
@@ -151,12 +155,18 @@ export default function Sidebar({
 
     // Add to recent searches through external handler or fallback
     if (onRecentSearchesChange) {
-      const updated = [searchTerm, ...externalRecentSearches.filter((t: string) => t !== searchTerm)].slice(0, 5);
+      const updated = [
+        searchTerm,
+        ...externalRecentSearches.filter((t: string) => t !== searchTerm),
+      ].slice(0, 5);
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
       const current = stored ? JSON.parse(stored) : [];
-      const updated = [searchTerm, ...current.filter((t: string) => t !== searchTerm)].slice(0, 5);
+      const updated = [
+        searchTerm,
+        ...current.filter((t: string) => t !== searchTerm),
+      ].slice(0, 5);
       localStorage.setItem("recentSearches", JSON.stringify(updated));
     }
 
@@ -164,7 +174,7 @@ export default function Sidebar({
     try {
       const [results] = await Promise.all([
         searchDatamuse(searchTerm),
-        new Promise((resolve) => setTimeout(resolve, 800))
+        new Promise((resolve) => setTimeout(resolve, 800)),
       ]);
 
       const related = results.slice(0, 8);
@@ -183,7 +193,9 @@ export default function Sidebar({
     if (combinedLoading) return;
 
     if (onRecentSearchesChange) {
-      const updated = externalRecentSearches.filter((term: string) => term !== termToRemove);
+      const updated = externalRecentSearches.filter(
+        (term: string) => term !== termToRemove
+      );
       onRecentSearchesChange(updated);
     } else if (typeof window !== "undefined") {
       const stored = localStorage.getItem("recentSearches");
@@ -232,6 +244,18 @@ export default function Sidebar({
   }
 
   function openSaveModal() {
+    // Compute default name: center word + timestamp or fallback
+    let centerWord = "";
+    try {
+      const current = localStorage.getItem("wordweb_app_state");
+      if (current) {
+        const state = JSON.parse(current);
+        centerWord = state.centerWord || "";
+      }
+    } catch {}
+    const ts = format(new Date(), "yyyyMMdd-HHmm");
+    const name = centerWord ? `${centerWord}-${ts}` : `wordweb-${ts}`;
+    setDefaultSaveName(name);
     setShowSaveModal(true);
   }
   function closeSaveModal() {
@@ -265,9 +289,11 @@ export default function Sidebar({
           open ? "translate-x-0" : "-translate-x-full"
         } ${themeClasses.sidebarBg(isDark)}`}
         style={{
-          fontFamily: "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
-          fontWeight: 500
-        }}>
+          fontFamily:
+            "Manrope, system-ui, Avenir, Helvetica, Arial, sans-serif",
+          fontWeight: 500,
+        }}
+      >
         {/* Header controls */}
         <div className="absolute top-3 left-0 right-3 flex justify-between items-center px-3">
           <button
@@ -277,21 +303,35 @@ export default function Sidebar({
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
             aria-label="Close sidebar"
-            tabIndex={0}>
+            tabIndex={0}
+          >
             ←
           </button>
-          <ThemeToggle isDark={isDark} onToggle={() => onThemeChange?.(!isDark)} />
+          <ThemeToggle
+            isDark={isDark}
+            onToggle={() => onThemeChange?.(!isDark)}
+          />
         </div>
         {/* Scrollable content area */}
         <div className="mt-12 h-[calc(100%-3rem)] overflow-y-auto overflow-x-hidden">
           <div className="flex flex-col gap-3 pr-1">
-            <h2 className={`text-base font-bold ${themeClasses.primaryText(isDark)}`}>wordweb. Controls</h2>
+            <h2
+              className={`text-base font-bold ${themeClasses.primaryText(
+                isDark
+              )}`}
+            >
+              wordweb. Controls
+            </h2>
 
             {/* Error message */}
             {error && (
               <div className={themeClasses.errorContainer(isDark)}>
                 <div className="flex items-start gap-2">
-                  <span className={themeClasses.errorIcon()} role="img" aria-label="Warning">
+                  <span
+                    className={themeClasses.errorIcon()}
+                    role="img"
+                    aria-label="Warning"
+                  >
                     ⚠
                   </span>
                   <span>{error}</span>
@@ -320,7 +360,8 @@ export default function Sidebar({
                     activeTab === "main" ? "btn-primary" : "btn-ghost"
                   }`}
                   onClick={() => setActiveTab("main")}
-                  type="button">
+                  type="button"
+                >
                   Main
                 </button>
                 <button
@@ -328,7 +369,8 @@ export default function Sidebar({
                     activeTab === "settings" ? "btn-primary" : "btn-ghost"
                   }`}
                   onClick={() => setActiveTab("settings")}
-                  type="button">
+                  type="button"
+                >
                   Settings
                 </button>
                 <button
@@ -336,7 +378,8 @@ export default function Sidebar({
                     activeTab === "share" ? "btn-primary" : "btn-ghost"
                   }`}
                   onClick={() => setActiveTab("share")}
-                  type="button">
+                  type="button"
+                >
                   Share
                 </button>
               </div>
@@ -345,7 +388,11 @@ export default function Sidebar({
                 <div className={themeClasses.contentPanel(isDark)}>
                   {/* Line style selector */}
                   <div>
-                    <label className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(isDark)}`}>
+                    <label
+                      className={`block text-sm mb-2 font-semibold ${themeClasses.secondaryText(
+                        isDark
+                      )}`}
+                    >
                       Line Style
                     </label>
                     <div className="dropdown dropdown-bottom w-full">
@@ -355,7 +402,8 @@ export default function Sidebar({
                         aria-haspopup="listbox"
                         aria-expanded="false"
                         aria-label="Select line style"
-                        className={themeClasses.dropdownButton(isDark)}>
+                        className={themeClasses.dropdownButton(isDark)}
+                      >
                         {currentLineStyle === "smoothstep"
                           ? "Smooth Step"
                           : currentLineStyle === "default"
@@ -369,22 +417,30 @@ export default function Sidebar({
                           stroke="currentColor"
                           viewBox="0 0 24 24"
                           aria-hidden="true"
-                          focusable="false">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          focusable="false"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M19 9l-7 7-7-7"
+                          />
                         </svg>
                       </div>
                       <ul
                         tabIndex={0}
                         className={themeClasses.dropdownMenu(isDark)}
                         role="listbox"
-                        aria-label="Line style options">
+                        aria-label="Line style options"
+                      >
                         <li>
                           <a
                             onClick={() => onLineStyleChange?.("default")}
                             className={themeClasses.dropdownItem(isDark)}
                             role="option"
                             aria-selected={currentLineStyle === "default"}
-                            tabIndex={0}>
+                            tabIndex={0}
+                          >
                             Default
                           </a>
                         </li>
@@ -394,7 +450,8 @@ export default function Sidebar({
                             className={themeClasses.dropdownItem(isDark)}
                             role="option"
                             aria-selected={currentLineStyle === "straight"}
-                            tabIndex={0}>
+                            tabIndex={0}
+                          >
                             Straight
                           </a>
                         </li>
@@ -404,7 +461,8 @@ export default function Sidebar({
                             className={themeClasses.dropdownItem(isDark)}
                             role="option"
                             aria-selected={currentLineStyle === "smoothstep"}
-                            tabIndex={0}>
+                            tabIndex={0}
+                          >
                             Smooth Step
                           </a>
                         </li>
@@ -423,7 +481,11 @@ export default function Sidebar({
                 </div>
               )}
               {activeTab === "settings" && (
-                <SettingsPanel isDark={isDark} showTooltips={showTooltips} setShowTooltips={setShowTooltips} />
+                <SettingsPanel
+                  isDark={isDark}
+                  showTooltips={showTooltips}
+                  setShowTooltips={setShowTooltips}
+                />
               )}
               {activeTab === "share" && (
                 <SharePanel
@@ -446,8 +508,13 @@ export default function Sidebar({
           className={themeClasses.sidebarToggle(isDark)}
           onClick={() => setOpen(true)}
           aria-label="Open sidebar"
-          tabIndex={0}>
-          <span className={themeClasses.toggleIcon()} role="img" aria-label="Open menu">
+          tabIndex={0}
+        >
+          <span
+            className={themeClasses.toggleIcon()}
+            role="img"
+            aria-label="Open menu"
+          >
             ☰
           </span>
         </button>
@@ -470,13 +537,22 @@ export default function Sidebar({
         existingNames={saves.map((s) => s.name)}
         onClose={closeSaveModal}
         onSave={handleSaveNamed}
+        defaultName={defaultSaveName}
       />
 
       {/* Help Modal */}
-      <HelpModal isOpen={showHelpModal} isDark={isDark} onClose={() => setShowHelpModal(false)} />
+      <HelpModal
+        isOpen={showHelpModal}
+        isDark={isDark}
+        onClose={() => setShowHelpModal(false)}
+      />
 
       {/* About Modal */}
-      <AboutModal isOpen={showAboutModal} isDark={isDark} onClose={() => setShowAboutModal(false)} />
+      <AboutModal
+        isOpen={showAboutModal}
+        isDark={isDark}
+        onClose={() => setShowAboutModal(false)}
+      />
     </>
   );
 }
