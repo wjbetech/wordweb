@@ -36,6 +36,7 @@
 - Add a "Feedback" or "Contact" link for user suggestions or bug reports.
 - Add a "Back to Top" button for long pages.
 - [ ] **Onboarding Modal for First-Time Users**: Display a modal on first app load that introduces the core features and usage tips. Allow users to opt out of seeing it again (preference stored in localStorage). Modal should be visually consistent with the app’s style and accessible.
+- [ ] **MainPanel Button Overflow on Small Screens**: On small screens, the menu buttons under the Main panel in MainPanel.tsx suffer from text overflowing the button. Ensure button text wraps or truncates gracefully and remains readable and accessible on all device sizes.
 
 ### 7. Code & Dev Experience
 
