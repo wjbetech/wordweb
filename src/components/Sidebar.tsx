@@ -276,7 +276,8 @@ export default function Sidebar({
             )}`}
             style={{ background: "none" }}
             onClick={() => setOpen(false)}
-            aria-label="Close sidebar">
+            aria-label="Close sidebar"
+            tabIndex={0}>
             ←
           </button>
           <ThemeToggle isDark={isDark} onToggle={() => onThemeChange?.(!isDark)} />
@@ -290,7 +291,9 @@ export default function Sidebar({
             {error && (
               <div className={themeClasses.errorContainer(isDark)}>
                 <div className="flex items-start gap-2">
-                  <span className={themeClasses.errorIcon()}>⚠</span>
+                  <span className={themeClasses.errorIcon()} role="img" aria-label="Warning">
+                    ⚠
+                  </span>
                   <span>{error}</span>
                 </div>
               </div>
@@ -346,7 +349,13 @@ export default function Sidebar({
                       Line Style
                     </label>
                     <div className="dropdown dropdown-bottom w-full">
-                      <div tabIndex={0} role="button" className={themeClasses.dropdownButton(isDark)}>
+                      <div
+                        tabIndex={0}
+                        role="button"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-label="Select line style"
+                        className={themeClasses.dropdownButton(isDark)}>
                         {currentLineStyle === "smoothstep"
                           ? "Smooth Step"
                           : currentLineStyle === "default"
@@ -354,29 +363,48 @@ export default function Sidebar({
                           : currentLineStyle === "straight"
                           ? "Straight"
                           : currentLineStyle}
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </div>
-                      <ul tabIndex={0} className={themeClasses.dropdownMenu(isDark)}>
+                      <ul
+                        tabIndex={0}
+                        className={themeClasses.dropdownMenu(isDark)}
+                        role="listbox"
+                        aria-label="Line style options">
                         <li>
                           <a
                             onClick={() => onLineStyleChange?.("default")}
-                            className={themeClasses.dropdownItem(isDark)}>
+                            className={themeClasses.dropdownItem(isDark)}
+                            role="option"
+                            aria-selected={currentLineStyle === "default"}
+                            tabIndex={0}>
                             Default
                           </a>
                         </li>
                         <li>
                           <a
                             onClick={() => onLineStyleChange?.("straight")}
-                            className={themeClasses.dropdownItem(isDark)}>
+                            className={themeClasses.dropdownItem(isDark)}
+                            role="option"
+                            aria-selected={currentLineStyle === "straight"}
+                            tabIndex={0}>
                             Straight
                           </a>
                         </li>
                         <li>
                           <a
                             onClick={() => onLineStyleChange?.("smoothstep")}
-                            className={themeClasses.dropdownItem(isDark)}>
+                            className={themeClasses.dropdownItem(isDark)}
+                            role="option"
+                            aria-selected={currentLineStyle === "smoothstep"}
+                            tabIndex={0}>
                             Smooth Step
                           </a>
                         </li>
@@ -414,8 +442,14 @@ export default function Sidebar({
 
       {/* Minimal toggle button when sidebar is closed */}
       {!open && (
-        <button className={themeClasses.sidebarToggle(isDark)} onClick={() => setOpen(true)} aria-label="Open sidebar">
-          <span className={themeClasses.toggleIcon()}>☰</span>
+        <button
+          className={themeClasses.sidebarToggle(isDark)}
+          onClick={() => setOpen(true)}
+          aria-label="Open sidebar"
+          tabIndex={0}>
+          <span className={themeClasses.toggleIcon()} role="img" aria-label="Open menu">
+            ☰
+          </span>
         </button>
       )}
 

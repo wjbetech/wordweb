@@ -50,7 +50,7 @@ const ColoredNode = memo(({ data }: NodeProps) => {
         className={`
           transition-all duration-200
           rounded-2xl shadow-md border border-base-200
-          px-5 py-2 min-w-[60px] text-center select-none flex items-center justify-center gap-2
+          px-5 min-w-[60px] select-none flex justify-center items-center gap-2
           font-medium text-[17px] leading-tight
           group
           ${isNew ? "animate-pop-in" : ""}
@@ -62,7 +62,10 @@ const ColoredNode = memo(({ data }: NodeProps) => {
           fontWeight: 500,
           backgroundBlendMode: !isCore && !isExpanded ? "multiply" : undefined,
           position: "relative",
-          cursor: "pointer"
+          cursor: "pointer",
+          height: 44, // fixed height for perfect vertical centering
+          paddingTop: 0,
+          paddingBottom: 0
         }}>
         {/* Drag handle removed: node is now always draggable and clickable */}
         {isLoading ? (
