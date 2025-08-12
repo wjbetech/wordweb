@@ -18,7 +18,7 @@ export const useNodePositioning = () => {
 
   // Helper: Find a non-overlapping position using spiral placement if random fails
   const findNonOverlappingPosition = useCallback(
-    (startX: number, startY: number, baseRadius: number, depth: number, spreadStep: number, placed: Node[]) => {
+    (startX: number, startY: number, baseRadius: number, depth: number, placed: Node[]) => {
       const minDist = 180;
 
       // Center position for calculations

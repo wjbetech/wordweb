@@ -83,11 +83,10 @@ export function useWordWebCreation({
         // After 0.5s, add related nodes around the center
         setTimeout(() => {
           const baseRadius = 220; // Fixed radius for all layers
-          const spreadStep = 0; // No additional spread for deeper layers
           const depth = 1;
           const placed: Node[] = [centerNode];
           const relatedNodes: Node[] = related.slice(0, 8).map((wordData, idx) => {
-            const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, spreadStep, placed);
+            const position = findNonOverlappingPosition(center.x, center.y, baseRadius, depth, placed);
             // Assign a new color for each layer (depth)
             const layerColor =
               colors[depth + (idx % (colors.length - 1)) + 1]?.bg ||

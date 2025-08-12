@@ -115,18 +115,10 @@ export function useNodeInteraction({
         const parentDepth = node.data.depth ?? 1;
         const depth = parentDepth + 1;
         const baseRadius = 160;
-        const spreadStep = 120;
         const placed: Node[] = [node, ...nodes];
 
         const newNodes: Node[] = uniqueRelated.map((wordData) => {
-          const position = findNonOverlappingPosition(
-            node.position.x,
-            node.position.y,
-            baseRadius,
-            depth,
-            spreadStep,
-            placed
-          );
+          const position = findNonOverlappingPosition(node.position.x, node.position.y, baseRadius, depth, placed);
           const n = {
             id: `expanded-${node.id}-${wordData.word}`,
             data: {
