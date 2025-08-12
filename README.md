@@ -1,69 +1,50 @@
-# React + TypeScript + Vite
+# WordWeb
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to wordweb. — a playful, visual, and interactive way to explore the world of words and their connections. This app is a personal project born out of a love for language, curiosity, and a desire to make word discovery feel like an adventure.
 
-Currently, two official plugins are available:
+Friends in marketing have confirmed that it would be great as a tool for snappily building word maps for new products that can inspire new ideation.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Friends in teaching (and myself) have confirmed that it's a powerful vocabulary building tool that children can engage with, and the print to PDF functionality is a great tool for making homework!
 
-## Expanding the ESLint configuration
+## What is WordWeb?
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+At it's core, wordweb. is a web application that lets you build and explore a "web" of related words. Type in any word, and watch as a network of connections blooms around it — synonyms, related terms, and more, all beautifully visualized. Click on any node to expand the web further, revealing new branches and surprising associations.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Features
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+- **Interactive Word Graph:** Visualize words and their relationships as a dynamic, draggable network.
+- **Expandable Nodes:** Click any word to expand its connections and grow your web.
+- **Tooltip Definitions:** Right-click a node to pin the tooltip and click 'show' to get grammar and meaning information for that word.
+- **Colorful, Accessible UI:** Designed for clarity and fun, with accessibility in mind.
+- **Onboarding & Help:** Friendly onboarding modal and sidebar to guide new users.
+- **Responsive Design:** Works great on desktop and mobile.
+- **Powered by Datamuse:** All word data comes from the amazing [Datamuse API](https://www.datamuse.com/api/). They have done an excellent job building this API and have very kindly affirmed my idea and are willing to bump API calls if needed.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## How to Use
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. **Start with a word:** Enter any word in the search bar and hit enter.
+2. **Explore:** Click on any node to expand and discover related words.
+3. **Navigate:** Drag nodes around, zoom, and pan to explore your word web.
+4. **Reset:** Want to start over? Just search for a new word!
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Why I Built This
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+I am generally interested in visualisation, shapes and canvasing in applications. I also understand what it's like to have writer's block (with music, or code) and 
+
+## Shoutout: Datamuse API
+
+A huge thank you to [Datamuse](https://www.datamuse.com/) for their fantastic, free word-finding API. This project wouldn't exist without their work. If you love word games, writing, or language, check them out!
+
+## Tech Stack
+
+- React + TypeScript + Vite
+- React Flow for graph visualization
+- DaisyUI & Tailwind CSS for UI
+
+## Contributing
+
+This is a personal project, but feedback and ideas are always welcome! Feel free to open an issue or reach out at wjbetech@gmail.com.
+
+---
+
+_Made with love for words and the web._
