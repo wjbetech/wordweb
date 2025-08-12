@@ -44,7 +44,3 @@ A huge thank you to [Datamuse](https://www.datamuse.com/) for their fantastic, f
 ## Contributing
 
 This is a personal project, but feedback and ideas are always welcome! Feel free to open an issue or reach out at wjbetech@gmail.com.
-
----
-
-_Made with love for words and the web._
