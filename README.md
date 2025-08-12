@@ -29,7 +29,7 @@ At it's core, wordweb. is a web application that lets you build and explore a "w
 
 ## Why I Built This
 
-I am generally interested in visualisation, shapes and canvasing in applications. I also understand what it's like to have writer's block (with music, or code) and 
+I am generally interested in visualisation, shapes and canvasing in applications. I also understand what it's like to have writer's block (with music, or code) and a good friend in marketing validated the idea for a very fast brainstorm/prototyping tool early on and made the decision to build this very easy. Since then I have had great feedback from other friends in other fields such as teaching and writing!
 
 ## Shoutout: Datamuse API
 
