@@ -1,5 +1,9 @@
 # WordWeb
 
+<p align="center">
+	<img src="public/assets/wordwebinaction.png" alt="WordWeb in action" width="700" />
+</p>
+
 Welcome to wordweb. — a playful, visual, and interactive way to explore the world of words and their connections. This app is a personal project born out of a love for language, curiosity, and a desire to make word discovery feel like an adventure.
 
 Friends in marketing have confirmed that it would be great as a tool for snappily building word maps for new products that can inspire new ideation.
@@ -29,7 +33,7 @@ At it's core, wordweb. is a web application that lets you build and explore a "w
 
 ## Why I Built This
 
-I am generally interested in visualisation, shapes and canvasing in applications. I also understand what it's like to have writer's block (with music, or code) and 
+I am generally interested in visualisation, shapes and canvasing in applications. I also understand what it's like to have writer's block (with music, or code) and
 
 ## Shoutout: Datamuse API
 
