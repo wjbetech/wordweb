@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { Node } from "reactflow";
 
 /**
- * Custom hook for managing node positioning logic in the word web
+ * Custom hook for managing node positioning logic in the wordweb.
  * Handles overlap detection and smart positioning algorithms
  */
 export const useNodePositioning = () => {

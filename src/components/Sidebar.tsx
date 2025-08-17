@@ -164,7 +164,7 @@ export default function Sidebar({
       localStorage.setItem("recentSearches", JSON.stringify(updated));
     }
 
-    // Call Datamuse API and trigger word web
+    // Call Datamuse API and trigger wordweb
     try {
       const [results] = await Promise.all([
         searchDatamuse(searchTerm),
@@ -261,7 +261,7 @@ export default function Sidebar({
     try {
       const current = localStorage.getItem("wordweb_app_state");
       if (!current) {
-        alert("Nothing to save. Create a word web first.");
+        alert("Nothing to save. Create a wordweb first.");
         return;
       }
       const state = JSON.parse(current) as AppState;

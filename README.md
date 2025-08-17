@@ -1,7 +1,7 @@
-# WordWeb
+# wordweb.
 
 <p align="center">
-	<img src="public/assets/wordwebinaction.png" alt="WordWeb in action" width="700" />
+	<img src="public/assets/wordwebinaction.png" alt="wordweb. in action" width="700" />
 </p>
 
 Welcome to wordweb. — a playful, visual, and interactive way to explore the world of words and their connections. This app is a personal project born out of a love for language, curiosity, and a desire to make word discovery feel like an adventure.
@@ -10,7 +10,7 @@ Friends in marketing have confirmed that it would be great as a tool for snappil
 
 Friends in teaching (and myself) have confirmed that it's a powerful vocabulary building tool that children can engage with, and the print to PDF functionality is a great tool for making homework!
 
-## What is WordWeb?
+## What is wordweb.?
 
 At it's core, wordweb. is a web application that lets you build and explore a "web" of related words. Type in any word, and watch as a network of connections blooms around it — synonyms, related terms, and more, all beautifully visualized. Click on any node to expand the web further, revealing new branches and surprising associations.
 
@@ -28,7 +28,7 @@ At it's core, wordweb. is a web application that lets you build and explore a "w
 
 1. **Start with a word:** Enter any word in the search bar and hit enter.
 2. **Explore:** Click on any node to expand and discover related words.
-3. **Navigate:** Drag nodes around, zoom, and pan to explore your word web.
+3. **Navigate:** Drag nodes around, zoom, and pan to explore your wordweb.
 4. **Reset:** Want to start over? Just search for a new word!
 
 ## Why I Built This

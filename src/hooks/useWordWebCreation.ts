@@ -42,7 +42,7 @@ export function useWordWebCreation({
       setError(null);
       setCenterWord(searchWord);
 
-      // Clear existing nodes and edges immediately
+      // Clear existing nodes and edges immediately for wordweb. creation
       setNodes([]);
       setEdges([]);
       setExpandedNodes(new Set());
@@ -56,10 +56,10 @@ export function useWordWebCreation({
       });
 
       try {
-        // Add artificial delay for better UX feedback (minimum 1200ms for initial load)
+        // Add artificial delay for better UX feedback (minimum 1200ms for initial load) when creating a wordweb.
         await new Promise((resolve) => setTimeout(resolve, 1200));
 
-        // Center node
+        // Center node for the wordweb.
         const centerId = `center-${searchWord}`;
         // Use a unique, vibrant color for the core node (e.g., DaisyUI primary)
         const coreColor = colors[0]?.bg || "#3b82f6";
@@ -80,7 +80,7 @@ export function useWordWebCreation({
         setNodes([centerNode]);
         stopInitialLoading();
 
-        // After 0.5s, add related nodes around the center
+        // After 0.5s, add related nodes around the center of the wordweb
         setTimeout(() => {
           const baseRadius = 220; // Fixed radius for all layers
           const depth = 1;
@@ -142,8 +142,8 @@ export function useWordWebCreation({
           }, 100); // Small delay to ensure nodes are rendered
         }, 500);
       } catch (error) {
-        console.error("Failed to create word web:", error);
-        setError("Failed to create word web. Please try again.");
+        console.error("Failed to create wordweb:", error);
+        setError("Failed to create wordweb. Please try again.");
         stopInitialLoading();
       }
     },

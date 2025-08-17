@@ -7,7 +7,7 @@
     }
   },
   "app": {
-    "name": "WordWeb",
+    "name": "wordweb.",
     "version": "1.0.0",
     "defaultTheme": "light",
     "maxNodes": 100,

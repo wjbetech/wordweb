@@ -91,7 +91,7 @@ export default function SearchSection({
           }
           ${combinedLoading ? "opacity-50 cursor-not-allowed" : "hover:scale-[1.02]"}
         `}
-        title="Generate a word web from a random interesting word">
+        title="Generate a wordweb. from a random interesting word">
         🎲 Surprise Me!
       </button>
 
